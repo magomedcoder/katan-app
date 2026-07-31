@@ -17,6 +17,7 @@ import 'package:grpc/service_api.dart' as $grpc;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'account.pb.dart' as $0;
+import 'common.pb.dart' as $1;
 
 export 'account.pb.dart';
 
@@ -97,6 +98,29 @@ class AccountServiceClient extends $grpc.Client {
     return $createUnaryCall(_$search, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.AccountEvent> subscribe(
+    $0.AccountSubscribeRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(
+        _$subscribe, $async.Stream.fromIterable([request]),
+        options: options);
+  }
+
+  $grpc.ResponseFuture<$1.Empty> emit(
+    $0.AccountClientEvent request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$emit, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$1.Empty> updateAllowedLoginIps(
+    $0.UpdateAllowedLoginIpsRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$updateAllowedLoginIps, request, options: options);
+  }
+
   // method descriptors
 
   static final _$getAccount =
@@ -145,6 +169,20 @@ class AccountServiceClient extends $grpc.Client {
           '/katan.AccountService/Search',
           ($0.AccountSearchRequest value) => value.writeToBuffer(),
           $0.AccountSearchResponse.fromBuffer);
+  static final _$subscribe =
+      $grpc.ClientMethod<$0.AccountSubscribeRequest, $0.AccountEvent>(
+          '/katan.AccountService/Subscribe',
+          ($0.AccountSubscribeRequest value) => value.writeToBuffer(),
+          $0.AccountEvent.fromBuffer);
+  static final _$emit = $grpc.ClientMethod<$0.AccountClientEvent, $1.Empty>(
+      '/katan.AccountService/Emit',
+      ($0.AccountClientEvent value) => value.writeToBuffer(),
+      $1.Empty.fromBuffer);
+  static final _$updateAllowedLoginIps =
+      $grpc.ClientMethod<$0.UpdateAllowedLoginIpsRequest, $1.Empty>(
+          '/katan.AccountService/UpdateAllowedLoginIps',
+          ($0.UpdateAllowedLoginIpsRequest value) => value.writeToBuffer(),
+          $1.Empty.fromBuffer);
 }
 
 @$pb.GrpcServiceName('katan.AccountService')
@@ -231,6 +269,30 @@ abstract class AccountServiceBase extends $grpc.Service {
             ($core.List<$core.int> value) =>
                 $0.AccountSearchRequest.fromBuffer(value),
             ($0.AccountSearchResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.AccountSubscribeRequest, $0.AccountEvent>(
+        'Subscribe',
+        subscribe_Pre,
+        false,
+        true,
+        ($core.List<$core.int> value) =>
+            $0.AccountSubscribeRequest.fromBuffer(value),
+        ($0.AccountEvent value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.AccountClientEvent, $1.Empty>(
+        'Emit',
+        emit_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.AccountClientEvent.fromBuffer(value),
+        ($1.Empty value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.UpdateAllowedLoginIpsRequest, $1.Empty>(
+        'UpdateAllowedLoginIps',
+        updateAllowedLoginIps_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.UpdateAllowedLoginIpsRequest.fromBuffer(value),
+        ($1.Empty value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.GetAccountResponse> getAccount_Pre($grpc.ServiceCall $call,
@@ -310,4 +372,28 @@ abstract class AccountServiceBase extends $grpc.Service {
 
   $async.Future<$0.AccountSearchResponse> search(
       $grpc.ServiceCall call, $0.AccountSearchRequest request);
+
+  $async.Stream<$0.AccountEvent> subscribe_Pre($grpc.ServiceCall $call,
+      $async.Future<$0.AccountSubscribeRequest> $request) async* {
+    yield* subscribe($call, await $request);
+  }
+
+  $async.Stream<$0.AccountEvent> subscribe(
+      $grpc.ServiceCall call, $0.AccountSubscribeRequest request);
+
+  $async.Future<$1.Empty> emit_Pre($grpc.ServiceCall $call,
+      $async.Future<$0.AccountClientEvent> $request) async {
+    return emit($call, await $request);
+  }
+
+  $async.Future<$1.Empty> emit(
+      $grpc.ServiceCall call, $0.AccountClientEvent request);
+
+  $async.Future<$1.Empty> updateAllowedLoginIps_Pre($grpc.ServiceCall $call,
+      $async.Future<$0.UpdateAllowedLoginIpsRequest> $request) async {
+    return updateAllowedLoginIps($call, await $request);
+  }
+
+  $async.Future<$1.Empty> updateAllowedLoginIps(
+      $grpc.ServiceCall call, $0.UpdateAllowedLoginIpsRequest request);
 }

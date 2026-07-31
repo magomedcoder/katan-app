@@ -2281,6 +2281,7 @@ class NodeGeomProperties extends $pb.GeneratedMessage {
     $core.int? styleOpacity,
     $core.bool? isCommutation,
     $core.String? caption,
+    $core.String? styleColor,
   }) {
     final result = create();
     if (type != null) result.type = type;
@@ -2291,6 +2292,7 @@ class NodeGeomProperties extends $pb.GeneratedMessage {
     if (styleOpacity != null) result.styleOpacity = styleOpacity;
     if (isCommutation != null) result.isCommutation = isCommutation;
     if (caption != null) result.caption = caption;
+    if (styleColor != null) result.styleColor = styleColor;
     return result;
   }
 
@@ -2315,6 +2317,7 @@ class NodeGeomProperties extends $pb.GeneratedMessage {
     ..aI(6, _omitFieldNames ? '' : 'styleOpacity')
     ..aOB(7, _omitFieldNames ? '' : 'isCommutation')
     ..aOS(8, _omitFieldNames ? '' : 'caption')
+    ..aOS(9, _omitFieldNames ? '' : 'styleColor')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2407,6 +2410,15 @@ class NodeGeomProperties extends $pb.GeneratedMessage {
   $core.bool hasCaption() => $_has(7);
   @$pb.TagNumber(8)
   void clearCaption() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get styleColor => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set styleColor($core.String value) => $_setString(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasStyleColor() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearStyleColor() => $_clearField(9);
 }
 
 enum PeerCable_PeerCable { nodeId, buildingId, notSet }

@@ -119,6 +119,14 @@ const GetAccountResponse$json = {
       '8': {},
       '10': 'notification'
     },
+    {
+      '1': 'allowed_login_ips',
+      '3': 7,
+      '4': 3,
+      '5': 9,
+      '8': {},
+      '10': 'allowedLoginIps'
+    },
   ],
   '3': [GetAccountResponse_Active$json, GetAccountResponse_Notification$json],
 };
@@ -164,19 +172,21 @@ final $typed_data.Uint8List getAccountResponseDescriptor = $convert.base64Decode
     'dzEloKBmFjdGl2ZRgFIAEoCzIgLmthdGFuLkdldEFjY291bnRSZXNwb25zZS5BY3RpdmVCIJJB'
     'HTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgZhY3RpdmUSbAoMbm90aWZpY2F0aW9uGA'
     'YgASgLMiYua2F0YW4uR2V0QWNjb3VudFJlc3BvbnNlLk5vdGlmaWNhdGlvbkIgkkEdMhvRgdC6'
-    '0L7RgNC+INC+0L/QuNGB0LDQvdC40LVSDG5vdGlmaWNhdGlvbhqpBAoGQWN0aXZlEjoKB2FkZH'
-    'Jlc3MYASABKANCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdhZGRyZXNzEjYK'
-    'BW5vZGVzGAIgAygJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIFbm9kZXMSOA'
-    'oGY2FibGVzGAMgAygJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIGY2FibGVz'
-    'EkUKDWNvdmVyYWdlX2FyZWEYBCADKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuN'
-    'C1Ugxjb3ZlcmFnZUFyZWESPAoIcG9seWdvbnMYBSADKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/'
-    '0LjRgdCw0L3QuNC1Ughwb2x5Z29ucxI+CglidWlsZGluZ3MYBiADKAlCIJJBHTIb0YHQutC+0Y'
-    'DQviDQvtC/0LjRgdCw0L3QuNC1UglidWlsZGluZ3MSNAoEdGFncxgHIAMoA0IgkkEdMhvRgdC6'
-    '0L7RgNC+INC+0L/QuNGB0LDQvdC40LVSBHRhZ3MSNAoEbW9kZRgIIAEoBUIgkkEdMhvRgdC60L'
-    '7RgNC+INC+0L/QuNGB0LDQvdC40LVSBG1vZGUSQAoKb2JqZWN0Tm9kZRgJIAEoBUIgkkEdMhvR'
-    'gdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVSCm9iamVjdE5vZGUaSgoMTm90aWZpY2F0aW9uEj'
-    'oKB21lc3NhZ2UYASABKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdtZXNz'
-    'YWdl');
+    '0L7RgNC+INC+0L/QuNGB0LDQvdC40LVSDG5vdGlmaWNhdGlvbhKNAQoRYWxsb3dlZF9sb2dpbl'
+    '9pcHMYByADKAlCYZJBXjJc0KDQsNC30YDQtdGI0ZHQvdC90YvQtSBJUC9DSURSINC00LvRjyDQ'
+    'stGF0L7QtNCwLCDQv9GD0YHRgtC+IC0g0LHQtdC3INC+0LPRgNCw0L3QuNGH0LXQvdC40LlSD2'
+    'FsbG93ZWRMb2dpbklwcxqpBAoGQWN0aXZlEjoKB2FkZHJlc3MYASABKANCIJJBHTIb0YHQutC+'
+    '0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdhZGRyZXNzEjYKBW5vZGVzGAIgAygJQiCSQR0yG9GB0L'
+    'rQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIFbm9kZXMSOAoGY2FibGVzGAMgAygJQiCSQR0yG9GB'
+    '0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIGY2FibGVzEkUKDWNvdmVyYWdlX2FyZWEYBCADKA'
+    'lCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ugxjb3ZlcmFnZUFyZWESPAoIcG9s'
+    'eWdvbnMYBSADKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ughwb2x5Z29ucx'
+    'I+CglidWlsZGluZ3MYBiADKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ugli'
+    'dWlsZGluZ3MSNAoEdGFncxgHIAMoA0IgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40L'
+    'VSBHRhZ3MSNAoEbW9kZRgIIAEoBUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVS'
+    'BG1vZGUSQAoKb2JqZWN0Tm9kZRgJIAEoBUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvd'
+    'C40LVSCm9iamVjdE5vZGUaSgoMTm90aWZpY2F0aW9uEjoKB21lc3NhZ2UYASABKAlCIJJBHTIb'
+    '0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdtZXNzYWdl');
 
 @$core.Deprecated('Use editAccountRequestDescriptor instead')
 const EditAccountRequest$json = {
@@ -487,3 +497,77 @@ final $typed_data.Uint8List accountSearchResponseDescriptor = $convert.base64Dec
     'ChVBY2NvdW50U2VhcmNoUmVzcG9uc2USNgoFdG90YWwYASABKANCIJJBHTIb0YHQutC+0YDQvi'
     'DQvtC/0LjRgdCw0L3QuNC1UgV0b3RhbBJQCgVpdGVtcxgCIAMoCzIYLmthdGFuLkFjY291bnRT'
     'ZWFyY2hJdGVtQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIFaXRlbXM=');
+
+@$core.Deprecated('Use accountSubscribeRequestDescriptor instead')
+const AccountSubscribeRequest$json = {
+  '1': 'AccountSubscribeRequest',
+};
+
+/// Descriptor for `AccountSubscribeRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List accountSubscribeRequestDescriptor =
+    $convert.base64Decode('ChdBY2NvdW50U3Vic2NyaWJlUmVxdWVzdA==');
+
+@$core.Deprecated('Use accountEventDescriptor instead')
+const AccountEvent$json = {
+  '1': 'AccountEvent',
+  '2': [
+    {
+      '1': 'chat',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.ChatEvent',
+      '8': {},
+      '9': 0,
+      '10': 'chat'
+    },
+  ],
+  '8': [
+    {'1': 'payload'},
+  ],
+};
+
+/// Descriptor for `AccountEvent`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List accountEventDescriptor = $convert.base64Decode(
+    'CgxBY2NvdW50RXZlbnQSRAoEY2hhdBgBIAEoCzIQLmthdGFuLkNoYXRFdmVudEIckkEZMhfRgd'
+    'C+0LHRi9GC0LjRjyDRh9Cw0YLQsEgAUgRjaGF0QgkKB3BheWxvYWQ=');
+
+@$core.Deprecated('Use accountClientEventDescriptor instead')
+const AccountClientEvent$json = {
+  '1': 'AccountClientEvent',
+  '2': [
+    {
+      '1': 'chat',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.ChatClientEvent',
+      '8': {},
+      '9': 0,
+      '10': 'chat'
+    },
+  ],
+  '8': [
+    {'1': 'payload'},
+  ],
+};
+
+/// Descriptor for `AccountClientEvent`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List accountClientEventDescriptor = $convert.base64Decode(
+    'ChJBY2NvdW50Q2xpZW50RXZlbnQSSgoEY2hhdBgBIAEoCzIWLmthdGFuLkNoYXRDbGllbnRFdm'
+    'VudEIckkEZMhfQutC+0LzQsNC90LTRiyDRh9Cw0YLQsEgAUgRjaGF0QgkKB3BheWxvYWQ=');
+
+@$core.Deprecated('Use updateAllowedLoginIpsRequestDescriptor instead')
+const UpdateAllowedLoginIpsRequest$json = {
+  '1': 'UpdateAllowedLoginIpsRequest',
+  '2': [
+    {'1': 'ips', '3': 1, '4': 3, '5': 9, '8': {}, '10': 'ips'},
+  ],
+};
+
+/// Descriptor for `UpdateAllowedLoginIpsRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List updateAllowedLoginIpsRequestDescriptor =
+    $convert.base64Decode(
+        'ChxVcGRhdGVBbGxvd2VkTG9naW5JcHNSZXF1ZXN0ElkKA2lwcxgBIAMoCUJHkkFEMkJJUCDQuN'
+        'C70LggQ0lEUiDQuNC70LggKNC/0YPRgdGC0L4gLSDQsdC10Lcg0L7Qs9GA0LDQvdC40YfQtdC9'
+        '0LjQuSlSA2lwcw==');

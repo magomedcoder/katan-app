@@ -15,6 +15,7 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'chat.pb.dart' as $2;
 import 'common.pb.dart' as $1;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
@@ -524,6 +525,7 @@ class GetAccountResponse extends $pb.GeneratedMessage {
     $core.Iterable<$1.Tag>? tags,
     GetAccountResponse_Active? active,
     GetAccountResponse_Notification? notification,
+    $core.Iterable<$core.String>? allowedLoginIps,
   }) {
     final result = create();
     if (fullName != null) result.fullName = fullName;
@@ -532,6 +534,7 @@ class GetAccountResponse extends $pb.GeneratedMessage {
     if (tags != null) result.tags.addAll(tags);
     if (active != null) result.active = active;
     if (notification != null) result.notification = notification;
+    if (allowedLoginIps != null) result.allowedLoginIps.addAll(allowedLoginIps);
     return result;
   }
 
@@ -557,6 +560,7 @@ class GetAccountResponse extends $pb.GeneratedMessage {
     ..aOM<GetAccountResponse_Notification>(
         6, _omitFieldNames ? '' : 'notification',
         subBuilder: GetAccountResponse_Notification.create)
+    ..pPS(7, _omitFieldNames ? '' : 'allowedLoginIps')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -624,6 +628,9 @@ class GetAccountResponse extends $pb.GeneratedMessage {
   void clearNotification() => $_clearField(6);
   @$pb.TagNumber(6)
   GetAccountResponse_Notification ensureNotification() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  $pb.PbList<$core.String> get allowedLoginIps => $_getList(6);
 }
 
 class EditAccountRequest extends $pb.GeneratedMessage {
@@ -1690,6 +1697,238 @@ class AccountSearchResponse extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $pb.PbList<AccountSearchItem> get items => $_getList(1);
+}
+
+class AccountSubscribeRequest extends $pb.GeneratedMessage {
+  factory AccountSubscribeRequest() => create();
+
+  AccountSubscribeRequest._();
+
+  factory AccountSubscribeRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AccountSubscribeRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AccountSubscribeRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountSubscribeRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountSubscribeRequest copyWith(
+          void Function(AccountSubscribeRequest) updates) =>
+      super.copyWith((message) => updates(message as AccountSubscribeRequest))
+          as AccountSubscribeRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AccountSubscribeRequest create() => AccountSubscribeRequest._();
+  @$core.override
+  AccountSubscribeRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AccountSubscribeRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AccountSubscribeRequest>(create);
+  static AccountSubscribeRequest? _defaultInstance;
+}
+
+enum AccountEvent_Payload { chat, notSet }
+
+class AccountEvent extends $pb.GeneratedMessage {
+  factory AccountEvent({
+    $2.ChatEvent? chat,
+  }) {
+    final result = create();
+    if (chat != null) result.chat = chat;
+    return result;
+  }
+
+  AccountEvent._();
+
+  factory AccountEvent.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AccountEvent.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, AccountEvent_Payload>
+      _AccountEvent_PayloadByTag = {
+    1: AccountEvent_Payload.chat,
+    0: AccountEvent_Payload.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AccountEvent',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..oo(0, [1])
+    ..aOM<$2.ChatEvent>(1, _omitFieldNames ? '' : 'chat',
+        subBuilder: $2.ChatEvent.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountEvent clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountEvent copyWith(void Function(AccountEvent) updates) =>
+      super.copyWith((message) => updates(message as AccountEvent))
+          as AccountEvent;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AccountEvent create() => AccountEvent._();
+  @$core.override
+  AccountEvent createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AccountEvent getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AccountEvent>(create);
+  static AccountEvent? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  AccountEvent_Payload whichPayload() =>
+      _AccountEvent_PayloadByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  void clearPayload() => $_clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  $2.ChatEvent get chat => $_getN(0);
+  @$pb.TagNumber(1)
+  set chat($2.ChatEvent value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChat() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChat() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.ChatEvent ensureChat() => $_ensure(0);
+}
+
+enum AccountClientEvent_Payload { chat, notSet }
+
+class AccountClientEvent extends $pb.GeneratedMessage {
+  factory AccountClientEvent({
+    $2.ChatClientEvent? chat,
+  }) {
+    final result = create();
+    if (chat != null) result.chat = chat;
+    return result;
+  }
+
+  AccountClientEvent._();
+
+  factory AccountClientEvent.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AccountClientEvent.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static const $core.Map<$core.int, AccountClientEvent_Payload>
+      _AccountClientEvent_PayloadByTag = {
+    1: AccountClientEvent_Payload.chat,
+    0: AccountClientEvent_Payload.notSet
+  };
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AccountClientEvent',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..oo(0, [1])
+    ..aOM<$2.ChatClientEvent>(1, _omitFieldNames ? '' : 'chat',
+        subBuilder: $2.ChatClientEvent.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountClientEvent clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountClientEvent copyWith(void Function(AccountClientEvent) updates) =>
+      super.copyWith((message) => updates(message as AccountClientEvent))
+          as AccountClientEvent;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AccountClientEvent create() => AccountClientEvent._();
+  @$core.override
+  AccountClientEvent createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AccountClientEvent getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AccountClientEvent>(create);
+  static AccountClientEvent? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  AccountClientEvent_Payload whichPayload() =>
+      _AccountClientEvent_PayloadByTag[$_whichOneof(0)]!;
+  @$pb.TagNumber(1)
+  void clearPayload() => $_clearField($_whichOneof(0));
+
+  @$pb.TagNumber(1)
+  $2.ChatClientEvent get chat => $_getN(0);
+  @$pb.TagNumber(1)
+  set chat($2.ChatClientEvent value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChat() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChat() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $2.ChatClientEvent ensureChat() => $_ensure(0);
+}
+
+class UpdateAllowedLoginIpsRequest extends $pb.GeneratedMessage {
+  factory UpdateAllowedLoginIpsRequest({
+    $core.Iterable<$core.String>? ips,
+  }) {
+    final result = create();
+    if (ips != null) result.ips.addAll(ips);
+    return result;
+  }
+
+  UpdateAllowedLoginIpsRequest._();
+
+  factory UpdateAllowedLoginIpsRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory UpdateAllowedLoginIpsRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'UpdateAllowedLoginIpsRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..pPS(1, _omitFieldNames ? '' : 'ips')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  UpdateAllowedLoginIpsRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  UpdateAllowedLoginIpsRequest copyWith(
+          void Function(UpdateAllowedLoginIpsRequest) updates) =>
+      super.copyWith(
+              (message) => updates(message as UpdateAllowedLoginIpsRequest))
+          as UpdateAllowedLoginIpsRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static UpdateAllowedLoginIpsRequest create() =>
+      UpdateAllowedLoginIpsRequest._();
+  @$core.override
+  UpdateAllowedLoginIpsRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static UpdateAllowedLoginIpsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<UpdateAllowedLoginIpsRequest>(create);
+  static UpdateAllowedLoginIpsRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.String> get ips => $_getList(0);
 }
 
 const $core.bool _omitFieldNames =

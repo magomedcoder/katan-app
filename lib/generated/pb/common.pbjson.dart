@@ -831,6 +831,7 @@ const NodeGeomProperties$json = {
       '10': 'isCommutation'
     },
     {'1': 'caption', '3': 8, '4': 1, '5': 9, '8': {}, '10': 'caption'},
+    {'1': 'style_color', '3': 9, '4': 1, '5': 9, '8': {}, '10': 'styleColor'},
   ],
 };
 
@@ -844,7 +845,9 @@ final $typed_data.Uint8List nodeGeomPropertiesDescriptor = $convert.base64Decode
     '3QuNC1UgRpY29uEkUKDXN0eWxlX29wYWNpdHkYBiABKAVCIJJBHTIb0YHQutC+0YDQviDQvtC/'
     '0LjRgdCw0L3QuNC1UgxzdHlsZU9wYWNpdHkSRwoOaXNfY29tbXV0YXRpb24YByABKAhCIJJBHT'
     'Ib0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ug1pc0NvbW11dGF0aW9uEjoKB2NhcHRpb24Y'
-    'CCABKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdjYXB0aW9u');
+    'CCABKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdjYXB0aW9uEkEKC3N0eW'
+    'xlX2NvbG9yGAkgASgJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIKc3R5bGVD'
+    'b2xvcg==');
 
 @$core.Deprecated('Use peerCableDescriptor instead')
 const PeerCable$json = {

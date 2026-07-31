@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
 import 'package:katan/app/theme.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
+import 'package:katan/presentation/screens/home/home_shell.dart';
 import 'package:katan/presentation/screens/login/login_screen.dart';
-import 'package:katan/presentation/screens/profile/profile_screen.dart';
 
 class KatanApp extends StatelessWidget {
   const KatanApp({super.key});
@@ -34,7 +34,7 @@ class _AuthGate extends StatelessWidget {
           AuthInitial() => const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           ),
-          AuthAuthenticated() => const ProfileScreen(),
+          AuthAuthenticated() => const HomeShell(),
           AuthLoading() || AuthUnauthenticated() => const LoginScreen(),
         };
       },
