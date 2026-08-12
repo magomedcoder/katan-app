@@ -28,6 +28,15 @@ import 'package:katan/domain/usecases/get_tasks_usecase.dart';
 import 'package:katan/domain/usecases/login_usecase.dart';
 import 'package:katan/domain/usecases/logout_usecase.dart';
 import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
+import 'package:katan/data/data_sources/remote/ai_chat_remote_datasource.dart';
+import 'package:katan/data/repositories/ai_chat_repository_impl.dart';
+import 'package:katan/domain/repositories/ai_chat_repository.dart';
+import 'package:katan/domain/usecases/create_ai_chat_session_usecase.dart';
+import 'package:katan/domain/usecases/delete_ai_chat_session_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_messages_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_sessions_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
+import 'package:katan/domain/usecases/send_ai_chat_message_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -111,5 +120,30 @@ Future<void> configureDependencies() async {
     ))
     ..registerLazySingleton(() => DeleteTaskFileUseCase(
         getIt<FileRepository>()
-    ));
+    ))
+    ..registerLazySingleton<AiChatRemoteDataSource>(() => AiChatRemoteDataSource(
+        getIt<GrpcClientFactory>(),
+        getIt<SessionStorage>(),
+      ))
+    ..registerLazySingleton<AiChatRepository>(() => AiChatRepositoryImpl(
+        getIt<AiChatRemoteDataSource>()),
+    )
+    ..registerLazySingleton(() => GetAiChatStatusUseCase(
+        getIt<AiChatRepository>()),
+    )
+    ..registerLazySingleton(() => GetAiChatSessionsUseCase(
+        getIt<AiChatRepository>()),
+    )
+    ..registerLazySingleton(() => CreateAiChatSessionUseCase(
+        getIt<AiChatRepository>()),
+    )
+    ..registerLazySingleton(() => DeleteAiChatSessionUseCase(
+        getIt<AiChatRepository>()),
+    )
+    ..registerLazySingleton(() => GetAiChatMessagesUseCase(
+        getIt<AiChatRepository>()),
+    )
+    ..registerLazySingleton(() => SendAiChatMessageUseCase(
+        getIt<AiChatRepository>()),
+    );
 }

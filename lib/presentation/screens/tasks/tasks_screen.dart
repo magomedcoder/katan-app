@@ -178,7 +178,7 @@ class _TaskTile extends StatelessWidget {
               [
                 if (task.assignee != null) task.assignee!.displayName,
                 if (task.dueAt != null) formatDateTime(task.dueAt),
-              ].join(' · '),
+              ].toString(),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: task.isOverdue ? theme.colorScheme.error : null,
               ),

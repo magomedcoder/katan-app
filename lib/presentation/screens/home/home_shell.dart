@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
 import 'package:katan/presentation/screens/profile/profile_screen.dart';
 import 'package:katan/presentation/screens/projects/projects_screen.dart';
 import 'package:katan/presentation/screens/tasks/tasks_screen.dart';
@@ -13,7 +14,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  static const _titles = ['Задачи', 'Проекты', 'Профиль'];
+  static const _titles = ['Задачи', 'Проекты', 'AI-чат', 'Профиль'];
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +24,7 @@ class _HomeShellState extends State<HomeShell> {
         children: const [
           TasksScreen(),
           ProjectsScreen(),
+          AiChatScreen(),
           ProfileScreen(),
         ],
       ),
@@ -41,9 +43,14 @@ class _HomeShellState extends State<HomeShell> {
             label: _titles[1],
           ),
           NavigationDestination(
+            icon: const Icon(Icons.smart_toy_outlined),
+            selectedIcon: const Icon(Icons.smart_toy),
+            label: _titles[2],
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.person_outline),
             selectedIcon: const Icon(Icons.person),
-            label: _titles[2],
+            label: _titles[3],
           ),
         ],
       ),

@@ -370,7 +370,7 @@ class _FilesSection extends StatelessWidget {
                 [
                   if (file.user != null) file.user!.displayName,
                   formatDateTime(file.createdAt),
-                ].join(' · '),
+                ].toString(),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -425,7 +425,7 @@ class _CommentsSection extends StatelessWidget {
                     [
                       comment.author?.displayName ?? 'Пользователь',
                       formatDateTime(comment.createdAt),
-                    ].join(' · '),
+                    ].toString(),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.outline,
                     ),

@@ -155,7 +155,7 @@ class _ProjectTile extends StatelessWidget {
                 project.owner!.displayName,
               if (project.isClosed)
                 'закрыт',
-            ].join(' · '),
+            ].toString(),
             style: theme.textTheme.bodySmall,
           ),
         ],

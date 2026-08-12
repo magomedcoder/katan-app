@@ -49,8 +49,6 @@ class AuthRemoteDataSource {
         LogoutRequest(),
         options: _factory.authOptions(token),
       );
-    } on GrpcError {
-
     } catch (_) {}
   }
 }
