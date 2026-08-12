@@ -1,0 +1,172 @@
+# Сборка платформ (Linux, Windows, macOS, Android, iOS)
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version/tag for build'
+        required: true
+        type: string
+
+jobs:
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build linux --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: build/linux/x64/release/bundle/
+
+      - name: Create Linux archive installer (tar.gz)
+        run: |
+          mkdir -p linux-installer
+          tar -czf linux-installer/katan-linux.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Build .deb package
+        run: |
+          chmod +x scripts/build-deb.sh
+          scripts/build-deb.sh "build/linux/x64/release/bundle" "linux-installer/katan-amd64.deb"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-installer
+          path: linux-installer/
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-2022
+    env:
+      RELEASE_TAG: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+
+      - run: flutter pub get
+      - run: flutter build windows --release
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Build Windows installer (NSIS)
+        run: |
+          $tag = "$env:RELEASE_TAG"
+          $ver = if ($tag -match '^v(.+)$') { $Matches[1] } else { '1.0.0' }
+          makensis /DAPP_VERSION=$ver scripts/windows-installer.nsi
+
+      - name: Prepare windows-installer artifact
+        run: |
+          New-Item -ItemType Directory -Force -Path windows-installer
+          Move-Item -Path scripts/KatanSetup.exe -Destination windows-installer/KatanSetup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: build/windows/x64/runner/Release/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: windows-installer/
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-14
+    env:
+      RELEASE_TAG: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+
+      - run: flutter pub get
+      - run: flutter build macos --release
+
+      - name: Create macOS DMG installer
+        run: |
+          mkdir -p dist
+          ver="${RELEASE_TAG#v}"
+          [[ "$ver" =~ ^[0-9] ]] || ver="1.0.0"
+          hdiutil create -volname "Katan" \
+            -srcfolder "build/macos/Build/Products/Release/katan.app" \
+            -ov -format UDZO "dist/katan-${ver}-macos.dmg"
+          cp "dist/katan-${ver}-macos.dmg" dist/katan-macos.dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: build/macos/Build/Products/Release/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer
+          path: dist/katan-macos.dmg
+
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    name: Build iOS (.app)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: build/ios/iphoneos/Runner.app

@@ -9,6 +9,8 @@ class HostEndpoint {
     required this.useTls,
   });
 
+  static const int defaultGrpcPort = 50051;
+
   final String host;
   final int port;
   final bool useTls;
@@ -33,7 +35,7 @@ class HostEndpoint {
     if (parts.length == 1) {
       return HostEndpoint(
         host: parts[0],
-        port: useTls ? 443 : 80,
+        port: defaultGrpcPort,
         useTls: useTls,
       );
     }
