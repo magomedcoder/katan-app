@@ -31,12 +31,20 @@ import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/data/data_sources/remote/ai_chat_remote_datasource.dart';
 import 'package:katan/data/repositories/ai_chat_repository_impl.dart';
 import 'package:katan/domain/repositories/ai_chat_repository.dart';
+import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/create_ai_chat_session_usecase.dart';
 import 'package:katan/domain/usecases/delete_ai_chat_session_usecase.dart';
+import 'package:katan/domain/usecases/edit_ai_chat_user_message_usecase.dart';
+import 'package:katan/domain/usecases/fork_ai_chat_session_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_messages_at_version_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_sessions_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
+import 'package:katan/domain/usecases/list_ai_chat_assistant_regenerations_usecase.dart';
+import 'package:katan/domain/usecases/regenerate_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/send_ai_chat_message_usecase.dart';
+import 'package:katan/domain/usecases/update_ai_chat_session_system_prompt_usecase.dart';
+import 'package:katan/domain/usecases/update_ai_chat_session_title_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -129,21 +137,45 @@ Future<void> configureDependencies() async {
         getIt<AiChatRemoteDataSource>()),
     )
     ..registerLazySingleton(() => GetAiChatStatusUseCase(
-        getIt<AiChatRepository>()),
-    )
+        getIt<AiChatRepository>()
+    ))
     ..registerLazySingleton(() => GetAiChatSessionsUseCase(
-        getIt<AiChatRepository>()),
-    )
+        getIt<AiChatRepository>()
+    ))
     ..registerLazySingleton(() => CreateAiChatSessionUseCase(
-        getIt<AiChatRepository>()),
-    )
+        getIt<AiChatRepository>()
+    ))
     ..registerLazySingleton(() => DeleteAiChatSessionUseCase(
-        getIt<AiChatRepository>()),
-    )
+        getIt<AiChatRepository>()
+    ))
     ..registerLazySingleton(() => GetAiChatMessagesUseCase(
-        getIt<AiChatRepository>()),
-    )
+        getIt<AiChatRepository>()
+    ))
     ..registerLazySingleton(() => SendAiChatMessageUseCase(
-        getIt<AiChatRepository>()),
-    );
+        getIt<AiChatRepository>())
+    )
+    ..registerLazySingleton(() => UpdateAiChatSessionTitleUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => UpdateAiChatSessionSystemPromptUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => ForkAiChatSessionUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => RegenerateAiChatAssistantUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => ContinueAiChatAssistantUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => EditAiChatUserMessageUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => ListAiChatAssistantRegenerationsUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => GetAiChatMessagesAtVersionUseCase(
+        getIt<AiChatRepository>()
+    ));
 }

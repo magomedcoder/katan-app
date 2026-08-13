@@ -135,17 +135,7 @@ class AiChatRemoteDataSource {
         options: await _authOptions(timeout: const Duration(minutes: 10)),
       );
 
-      return AiChatStreamHandle(
-        chunks: response.map(mapAiChatChunk).handleError((Object error) {
-          if (error is GrpcError) {
-            throw _mapGrpc(error, 'Ошибка стрима AI-чата');
-          }
-          throw NetworkFailure(error.toString());
-        }),
-        cancel: () async {
-          await response.cancel();
-        },
-      );
+      return _wrapChunkStream(response, fallback: 'Ошибка стрима AI-чата');
     } on Failure {
       rethrow;
     } on GrpcError catch (e) {
@@ -153,6 +143,205 @@ class AiChatRemoteDataSource {
     } catch (e) {
       throw NetworkFailure(e.toString());
     }
+  }
+
+  Future<domain.AiChatSession> updateSessionTitle({
+    required int sessionId,
+    required String title,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.updateSessionTitle(
+        AiChatUpdateSessionTitleRequest(
+          sessionId: Int64(sessionId),
+          title: title,
+        ),
+        options: await _authOptions(),
+      );
+      return mapAiChatSession(response);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось переименовать сессию');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<domain.AiChatSession> updateSessionSystemPrompt({
+    required int sessionId,
+    required String systemPrompt,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.updateSessionSystemPrompt(
+        AiChatUpdateSessionSystemPromptRequest(
+          sessionId: Int64(sessionId),
+          systemPrompt: systemPrompt,
+        ),
+        options: await _authOptions(),
+      );
+      return mapAiChatSession(response);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось сохранить системную инструкцию');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<domain.AiChatSession> forkSession(int sessionId) async {
+    try {
+      final client = await _client();
+      final response = await client.forkSession(
+        AiChatForkSessionRequest(sessionId: Int64(sessionId)),
+        options: await _authOptions(),
+      );
+      return mapAiChatSession(response);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось создать копию сессии');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<int> listAssistantRegenerationCount({
+    required int sessionId,
+    required int assistantMessageId,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.listAssistantRegenerations(
+        AiChatListAssistantRegenerationsRequest(
+          sessionId: Int64(sessionId),
+          assistantMessageId: Int64(assistantMessageId),
+        ),
+        options: await _authOptions(),
+      );
+      return response.regenerations.length;
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось загрузить версии ответа');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<List<domain.AiChatMessage>> getMessagesAtAssistantVersion({
+    required int sessionId,
+    required int assistantMessageId,
+    required int versionIndex,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.getMessagesAtAssistantVersion(
+        AiChatGetMessagesAtAssistantVersionRequest(
+          sessionId: Int64(sessionId),
+          assistantMessageId: Int64(assistantMessageId),
+          versionIndex: versionIndex,
+        ),
+        options: await _authOptions(),
+      );
+      return response.messages.map(mapAiChatMessage).toList();
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось загрузить версию ответа');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<AiChatStreamHandle> regenerateAssistant({
+    required int sessionId,
+    required int assistantMessageId,
+  }) async {
+    try {
+      final client = await _client();
+      final response = client.regenerateAssistant(
+        AiChatRegenerateRequest(
+          sessionId: Int64(sessionId),
+          assistantMessageId: Int64(assistantMessageId),
+        ),
+        options: await _authOptions(timeout: const Duration(minutes: 10)),
+      );
+      return _wrapChunkStream(response, fallback: 'Ошибка стрима AI-чата');
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось перегенерировать ответ');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<AiChatStreamHandle> continueAssistant({
+    required int sessionId,
+    required int assistantMessageId,
+  }) async {
+    try {
+      final client = await _client();
+      final response = client.continueAssistant(
+        AiChatContinueRequest(
+          sessionId: Int64(sessionId),
+          assistantMessageId: Int64(assistantMessageId),
+        ),
+        options: await _authOptions(timeout: const Duration(minutes: 10)),
+      );
+      return _wrapChunkStream(response, fallback: 'Ошибка стрима AI-чата');
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось продолжить ответ');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<AiChatStreamHandle> editUserMessageAndContinue({
+    required int sessionId,
+    required int userMessageId,
+    required String newContent,
+  }) async {
+    try {
+      final client = await _client();
+      final response = client.editUserMessageAndContinue(
+        AiChatEditUserMessageRequest(
+          sessionId: Int64(sessionId),
+          userMessageId: Int64(userMessageId),
+          newContent: newContent,
+        ),
+        options: await _authOptions(timeout: const Duration(minutes: 10)),
+      );
+      return _wrapChunkStream(response, fallback: 'Ошибка стрима AI-чата');
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось изменить сообщение');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  AiChatStreamHandle _wrapChunkStream(
+    ResponseStream<AiChatChunk> response, {
+    required String fallback,
+  }) {
+    return AiChatStreamHandle(
+      chunks: response.map(mapAiChatChunk).handleError((Object error) {
+        if (error is GrpcError) {
+          throw _mapGrpc(error, fallback);
+        }
+        throw NetworkFailure(error.toString());
+      }),
+      cancel: () async {
+        await response.cancel();
+      },
+    );
   }
 
   Future<AiChatServiceClient> _client() async {

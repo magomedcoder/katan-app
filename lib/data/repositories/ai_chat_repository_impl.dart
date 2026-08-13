@@ -30,7 +30,45 @@ class AiChatRepositoryImpl implements AiChatRepository {
   Future<void> deleteSession(int sessionId) => _remote.deleteSession(sessionId);
 
   @override
+  Future<AiChatSession> updateSessionTitle({
+    required int sessionId,
+    required String title,
+  }) => _remote.updateSessionTitle(sessionId: sessionId, title: title);
+
+  @override
+  Future<AiChatSession> updateSessionSystemPrompt({
+    required int sessionId,
+    required String systemPrompt,
+  }) => _remote.updateSessionSystemPrompt(
+    sessionId: sessionId,
+    systemPrompt: systemPrompt,
+  );
+
+  @override
+  Future<AiChatSession> forkSession(int sessionId) => _remote.forkSession(sessionId);
+
+  @override
   Future<List<AiChatMessage>> getMessages(int sessionId) => _remote.getMessages(sessionId);
+
+  @override
+  Future<int> listAssistantRegenerationCount({
+    required int sessionId,
+    required int assistantMessageId,
+  }) => _remote.listAssistantRegenerationCount(
+    sessionId: sessionId,
+    assistantMessageId: assistantMessageId,
+  );
+
+  @override
+  Future<List<AiChatMessage>> getMessagesAtAssistantVersion({
+    required int sessionId,
+    required int assistantMessageId,
+    required int versionIndex,
+  }) => _remote.getMessagesAtAssistantVersion(
+    sessionId: sessionId,
+    assistantMessageId: assistantMessageId,
+    versionIndex: versionIndex,
+  );
 
   @override
   Future<AiChatStreamHandle> sendMessage({
@@ -43,5 +81,34 @@ class AiChatRepositoryImpl implements AiChatRepository {
     userMessage: userMessage,
     attachmentFileIds: attachmentFileIds,
     mapContext: mapContext,
+  );
+
+  @override
+  Future<AiChatStreamHandle> regenerateAssistant({
+    required int sessionId,
+    required int assistantMessageId,
+  }) => _remote.regenerateAssistant(
+    sessionId: sessionId,
+    assistantMessageId: assistantMessageId,
+  );
+
+  @override
+  Future<AiChatStreamHandle> continueAssistant({
+    required int sessionId,
+    required int assistantMessageId,
+  }) => _remote.continueAssistant(
+    sessionId: sessionId,
+    assistantMessageId: assistantMessageId,
+  );
+
+  @override
+  Future<AiChatStreamHandle> editUserMessageAndContinue({
+    required int sessionId,
+    required int userMessageId,
+    required String newContent,
+  }) => _remote.editUserMessageAndContinue(
+    sessionId: sessionId,
+    userMessageId: userMessageId,
+    newContent: newContent,
   );
 }

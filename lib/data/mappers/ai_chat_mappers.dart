@@ -63,6 +63,14 @@ AiChatQuickPrompt mapAiChatQuickPrompt(pb.AiChatQuickPrompt item) {
   );
 }
 
+AiChatProactiveChip mapAiChatProactiveChip(pb.AiChatProactiveChip item) {
+  return AiChatProactiveChip(
+    id: item.id,
+    label: item.label,
+    prompt: item.prompt,
+  );
+}
+
 AiChatStatus mapAiChatStatus(pb.AiChatStatusResponse response) {
   return AiChatStatus(
     enabled: response.enabled,
@@ -72,6 +80,7 @@ AiChatStatus mapAiChatStatus(pb.AiChatStatusResponse response) {
     imageUploadAvailable: response.imageUploadAvailable,
     sessionTemplates: response.sessionTemplates.map(mapAiChatSessionTemplate).toList(),
     quickPrompts: response.customQuickPrompts.map(mapAiChatQuickPrompt).toList(),
+    proactiveChips: response.proactiveChips.map(mapAiChatProactiveChip).toList(),
   );
 }
 

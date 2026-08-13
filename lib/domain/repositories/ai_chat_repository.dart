@@ -14,13 +14,52 @@ abstract class AiChatRepository {
 
   Future<void> deleteSession(int sessionId);
 
+  Future<AiChatSession> updateSessionTitle({
+    required int sessionId,
+    required String title,
+  });
+
+  Future<AiChatSession> updateSessionSystemPrompt({
+    required int sessionId,
+    required String systemPrompt,
+  });
+
+  Future<AiChatSession> forkSession(int sessionId);
+
   Future<List<AiChatMessage>> getMessages(int sessionId);
+
+  Future<int> listAssistantRegenerationCount({
+    required int sessionId,
+    required int assistantMessageId,
+  });
+
+  Future<List<AiChatMessage>> getMessagesAtAssistantVersion({
+    required int sessionId,
+    required int assistantMessageId,
+    required int versionIndex,
+  });
 
   Future<AiChatStreamHandle> sendMessage({
     required int sessionId,
     required String userMessage,
     List<int> attachmentFileIds = const [],
     AiChatMapContext? mapContext,
+  });
+
+  Future<AiChatStreamHandle> regenerateAssistant({
+    required int sessionId,
+    required int assistantMessageId,
+  });
+
+  Future<AiChatStreamHandle> continueAssistant({
+    required int sessionId,
+    required int assistantMessageId,
+  });
+
+  Future<AiChatStreamHandle> editUserMessageAndContinue({
+    required int sessionId,
+    required int userMessageId,
+    required String newContent,
   });
 }
 

@@ -66,6 +66,21 @@ class AiChatQuickPrompt extends Equatable {
   List<Object?> get props => [id, label, text];
 }
 
+class AiChatProactiveChip extends Equatable {
+  const AiChatProactiveChip({
+    required this.id,
+    required this.label,
+    required this.prompt,
+  });
+
+  final String id;
+  final String label;
+  final String prompt;
+
+  @override
+  List<Object?> get props => [id, label, prompt];
+}
+
 class AiChatStatus extends Equatable {
   const AiChatStatus({
     required this.enabled,
@@ -75,6 +90,7 @@ class AiChatStatus extends Equatable {
     required this.imageUploadAvailable,
     required this.sessionTemplates,
     required this.quickPrompts,
+    this.proactiveChips = const [],
   });
 
   final bool enabled;
@@ -84,6 +100,7 @@ class AiChatStatus extends Equatable {
   final bool imageUploadAvailable;
   final List<AiChatSessionTemplate> sessionTemplates;
   final List<AiChatQuickPrompt> quickPrompts;
+  final List<AiChatProactiveChip> proactiveChips;
 
   bool get canUse => enabled && llmConnected;
 
@@ -96,6 +113,7 @@ class AiChatStatus extends Equatable {
     imageUploadAvailable,
     sessionTemplates,
     quickPrompts,
+    proactiveChips,
   ];
 }
 
@@ -114,6 +132,22 @@ class AiChatSession extends Equatable {
   final String systemPrompt;
   final AiChatMapContext? mapContext;
 
+  AiChatSession copyWith({
+    int? id,
+    String? title,
+    DateTime? updatedAt,
+    String? systemPrompt,
+    AiChatMapContext? mapContext,
+  }) {
+    return AiChatSession(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      updatedAt: updatedAt ?? this.updatedAt,
+      systemPrompt: systemPrompt ?? this.systemPrompt,
+      mapContext: mapContext ?? this.mapContext,
+    );
+  }
+
   @override
   List<Object?> get props => [id, title, updatedAt, systemPrompt, mapContext];
 }
@@ -129,6 +163,9 @@ class AiChatMessage extends Equatable {
     this.attachmentFileId,
     this.attachmentName,
     this.isStreaming = false,
+    this.versionCount = 1,
+    this.versionIndex = 0,
+    this.continueOffered = false,
   });
 
   final int id;
@@ -140,6 +177,9 @@ class AiChatMessage extends Equatable {
   final int? attachmentFileId;
   final String? attachmentName;
   final bool isStreaming;
+  final int versionCount;
+  final int versionIndex;
+  final bool continueOffered;
 
   bool get isUser => role == 'user';
   bool get isAssistant => role == 'assistant';
@@ -154,6 +194,9 @@ class AiChatMessage extends Equatable {
     int? attachmentFileId,
     String? attachmentName,
     bool? isStreaming,
+    int? versionCount,
+    int? versionIndex,
+    bool? continueOffered,
   }) {
     return AiChatMessage(
       id: id ?? this.id,
@@ -165,6 +208,9 @@ class AiChatMessage extends Equatable {
       attachmentFileId: attachmentFileId ?? this.attachmentFileId,
       attachmentName: attachmentName ?? this.attachmentName,
       isStreaming: isStreaming ?? this.isStreaming,
+      versionCount: versionCount ?? this.versionCount,
+      versionIndex: versionIndex ?? this.versionIndex,
+      continueOffered: continueOffered ?? this.continueOffered,
     );
   }
 
@@ -179,6 +225,9 @@ class AiChatMessage extends Equatable {
     attachmentFileId,
     attachmentName,
     isStreaming,
+    versionCount,
+    versionIndex,
+    continueOffered,
   ];
 }
 
