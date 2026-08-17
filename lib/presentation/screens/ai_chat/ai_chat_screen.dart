@@ -85,42 +85,91 @@ class _AiChatViewState extends State<_AiChatView> {
   }
 
   Future<void> _openSessionsSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return BlocProvider.value(
-          value: context.read<AiChatCubit>(),
-          child: DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.6,
-            minChildSize: 0.4,
-            maxChildSize: 0.9,
-            builder: (_, controller) {
-              return _SessionsSheet(scrollController: controller);
-            },
-          ),
-        );
-      },
+    final cubit = context.read<AiChatCubit>();
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (routeContext) {
+          return BlocProvider.value(
+            value: cubit,
+            child: Scaffold(
+              appBar: AppBar(
+                title: const Text('Сессии'),
+                actions: [
+                  IconButton(
+                    tooltip: 'Новая',
+                    onPressed: () {
+                      cubit.createSession();
+                      Navigator.pop(routeContext);
+                    },
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+              body: const _SessionsPage(),
+            ),
+          );
+        },
+      ),
     );
   }
 
   Future<void> _openSettings(AiChatSession session) async {
-    await showModalBottomSheet<void>(
+    final cubit = context.read<AiChatCubit>();
+    final controller = TextEditingController(text: session.systemPrompt);
+    await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return BlocProvider.value(
-          value: context.read<AiChatCubit>(),
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
-            ),
-            child: _SettingsSheet(session: session),
-          ),
+      builder: (dialogContext) {
+        var saving = false;
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Настройки чата'),
+              content: SizedBox(
+                width: 400,
+                child: TextField(
+                  controller: controller,
+                  enabled: !saving,
+                  minLines: 6,
+                  maxLines: 12,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Системная инструкция',
+                    hintText: 'Стиль и правила ответов для этого чата...',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: saving ? null : () => Navigator.pop(dialogContext, false),
+                  child: const Text('Отмена'),
+                ),
+                FilledButton(
+                  onPressed: saving
+                    ? null
+                    : () async {
+                      setDialogState(() => saving = true);
+                      await cubit.updateSystemPrompt(controller.text);
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext, true);
+                      }
+                    },
+                  child: saving
+                    ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : const Text('Сохранить'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
+    controller.dispose();
   }
 
   Future<void> _editUserMessage(AiChatMessage message) async {
@@ -388,10 +437,8 @@ class _ComposerChip {
   final String text;
 }
 
-class _SessionsSheet extends StatelessWidget {
-  const _SessionsSheet({required this.scrollController});
-
-  final ScrollController scrollController;
+class _SessionsPage extends StatelessWidget {
+  const _SessionsPage();
 
   Future<void> _rename(BuildContext context, AiChatSession session) async {
     final controller = TextEditingController(
@@ -456,53 +503,73 @@ class _SessionsSheet extends StatelessWidget {
     }
   }
 
+  Future<void> _showActions(BuildContext context, AiChatSession session) async {
+    final action = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return SimpleDialog(
+          title: const Text('Действия'),
+          children: [
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, 'rename'),
+              child: const Text('Переименовать'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, 'fork'),
+              child: const Text('Создать копию'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, 'delete'),
+              child: const Text('Удалить'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!context.mounted || action == null) {
+      return;
+    }
+
+    switch (action) {
+      case 'rename':
+        await _rename(context, session);
+      case 'fork':
+        await context.read<AiChatCubit>().forkSession(session.id);
+        if (context.mounted) {
+          final latest = context.read<AiChatCubit>().state;
+          if (latest is AiChatReady && latest.actionError == null) {
+            Navigator.pop(context);
+          }
+        }
+      case 'delete':
+        await _delete(context, session);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AiChatCubit, AiChatState>(
       builder: (context, state) {
-        if (state is! AiChatReady) {
-          return const SizedBox.shrink();
+        final ready = state is AiChatReady ? state : null;
+        final sessions = ready?.sessions ?? const <AiChatSession>[];
+        final selectedSessionId = ready?.selectedSessionId;
+        final templates = ready?.status.sessionTemplates ?? const <AiChatSessionTemplate>[];
+        final streaming = ready?.streaming ?? false;
+
+        if (ready == null) {
+          return const Center(child: CircularProgressIndicator());
         }
 
-        final sessions = state.sessions;
-        final selectedSessionId = state.selectedSessionId;
-        final templates = state.status.sessionTemplates;
-        final streaming = state.streaming;
-
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-              child: Row(
-                children: [
-                  Text('Сессии', style: Theme.of(context).textTheme.titleMedium),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Новая',
-                    onPressed: streaming ? null : () {
-                      context.read<AiChatCubit>().createSession();
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.add),
-                  ),
-                ],
-              ),
-            ),
             if (templates.isNotEmpty)
               SizedBox(
-                height: 40,
+                height: 48,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   itemCount: templates.length,
                   separatorBuilder: (_, index) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
@@ -530,7 +597,6 @@ class _SessionsSheet extends StatelessWidget {
                   message: 'Сессий пока нет',
                 )
                 : ListView.builder(
-                  controller: scrollController,
                   itemCount: sessions.length,
                   itemBuilder: (context, index) {
                     final session = sessions[index];
@@ -545,31 +611,10 @@ class _SessionsSheet extends StatelessWidget {
                           context.read<AiChatCubit>().selectSession(session.id);
                           Navigator.pop(context);
                         },
-                      trailing: PopupMenuButton<String>(
+                      trailing: IconButton(
                         tooltip: 'Действия',
-                        enabled: !streaming,
-                        onSelected: (value) async {
-                          switch (value) {
-                            case 'rename':
-                              await _rename(context, session);
-                            case 'fork':
-                              await context.read<AiChatCubit>().forkSession(session.id);
-                              if (!context.mounted) {
-                                return;
-                              }
-                              final latest = context.read<AiChatCubit>().state;
-                              if (latest is AiChatReady && latest.actionError == null) {
-                                Navigator.pop(context);
-                              }
-                            case 'delete':
-                              await _delete(context, session);
-                          }
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(value: 'rename', child: Text('Переименовать')),
-                          PopupMenuItem(value: 'fork', child: Text('Создать копию')),
-                          PopupMenuItem(value: 'delete', child: Text('Удалить')),
-                        ],
+                        onPressed: streaming ? null : () => _showActions(context, session),
+                        icon: const Icon(Icons.more_vert),
                       ),
                     );
                   },
@@ -578,111 +623,6 @@ class _SessionsSheet extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _SettingsSheet extends StatefulWidget {
-  const _SettingsSheet({required this.session});
-
-  final AiChatSession session;
-
-  @override
-  State<_SettingsSheet> createState() => _SettingsSheetState();
-}
-
-class _SettingsSheetState extends State<_SettingsSheet> {
-  late final TextEditingController _controller;
-  var _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.session.systemPrompt);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    await context.read<AiChatCubit>().updateSystemPrompt(_controller.text);
-    if (!mounted) {
-      return;
-    }
-
-    final state = context.read<AiChatCubit>().state;
-    if (state is AiChatReady && state.actionError == null) {
-      Navigator.pop(context);
-      return;
-    }
-
-    setState(() => _saving = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text('Настройки чата', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Text(
-              'Системная инструкция',
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _controller,
-              enabled: !_saving,
-              minLines: 6,
-              maxLines: 12,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Стиль и правила ответов для этого чата...',
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                TextButton(
-                  onPressed: _saving ? null : () => Navigator.pop(context),
-                  child: const Text('Отмена'),
-                ),
-                const Spacer(),
-                FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                    ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                    : const Text('Сохранить'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

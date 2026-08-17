@@ -29,8 +29,17 @@ import 'package:katan/domain/usecases/login_usecase.dart';
 import 'package:katan/domain/usecases/logout_usecase.dart';
 import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/data/data_sources/remote/ai_chat_remote_datasource.dart';
+import 'package:katan/data/data_sources/remote/chat_remote_datasource.dart';
 import 'package:katan/data/repositories/ai_chat_repository_impl.dart';
+import 'package:katan/data/repositories/chat_repository_impl.dart';
 import 'package:katan/domain/repositories/ai_chat_repository.dart';
+import 'package:katan/domain/repositories/chat_repository.dart';
+import 'package:katan/domain/usecases/get_chat_room_usecase.dart';
+import 'package:katan/domain/usecases/get_chat_unread_counts_usecase.dart';
+import 'package:katan/domain/usecases/list_chat_messages_usecase.dart';
+import 'package:katan/domain/usecases/list_chat_rooms_usecase.dart';
+import 'package:katan/domain/usecases/mark_chat_read_usecase.dart';
+import 'package:katan/domain/usecases/send_chat_message_usecase.dart';
 import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/create_ai_chat_session_usecase.dart';
 import 'package:katan/domain/usecases/delete_ai_chat_session_usecase.dart';
@@ -177,5 +186,30 @@ Future<void> configureDependencies() async {
     ))
     ..registerLazySingleton(() => GetAiChatMessagesAtVersionUseCase(
         getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton<ChatRemoteDataSource>(() => ChatRemoteDataSource(
+      getIt<GrpcClientFactory>(),
+      getIt<SessionStorage>(),
+    ))
+    ..registerLazySingleton<ChatRepository>(() => ChatRepositoryImpl(
+      getIt<ChatRemoteDataSource>(),
+    ))
+    ..registerLazySingleton(() => ListChatRoomsUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => GetChatRoomUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => ListChatMessagesUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => SendChatMessageUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => MarkChatReadUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => GetChatUnreadCountsUseCase(
+      getIt<ChatRepository>(),
     ));
 }
