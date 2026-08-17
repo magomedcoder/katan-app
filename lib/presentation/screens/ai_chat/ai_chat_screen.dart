@@ -20,7 +20,7 @@ import 'package:katan/domain/usecases/update_ai_chat_session_system_prompt_useca
 import 'package:katan/domain/usecases/update_ai_chat_session_title_usecase.dart';
 import 'package:katan/presentation/cubit/ai_chat_cubit.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
-import 'package:katan/presentation/utils/formatters.dart';
+import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/presentation/widgets/empty_state.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 

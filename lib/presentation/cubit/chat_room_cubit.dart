@@ -180,6 +180,6 @@ class ChatRoomCubit extends Cubit<ChatRoomState> {
       );
     } on AuthFailure {
       rethrow;
-    } on Failure {}
+    }
   }
 }

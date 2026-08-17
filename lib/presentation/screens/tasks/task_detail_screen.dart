@@ -14,7 +14,7 @@ import 'package:katan/domain/usecases/get_task_usecase.dart';
 import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/task_detail_cubit.dart';
-import 'package:katan/presentation/utils/formatters.dart';
+import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 

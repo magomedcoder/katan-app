@@ -8,7 +8,7 @@ import 'package:katan/domain/usecases/get_tasks_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/tasks_cubit.dart';
 import 'package:katan/presentation/screens/tasks/task_detail_screen.dart';
-import 'package:katan/presentation/utils/formatters.dart';
+import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/presentation/widgets/empty_state.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 import 'package:katan/presentation/widgets/search_app_bar.dart';

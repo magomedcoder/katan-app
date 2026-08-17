@@ -4,7 +4,7 @@ import 'package:katan/domain/entities/account.dart';
 import 'package:katan/domain/entities/chat.dart';
 import 'package:katan/presentation/cubit/chat_rooms_cubit.dart';
 import 'package:katan/presentation/screens/chat/chat_room_screen.dart';
-import 'package:katan/presentation/utils/formatters.dart';
+import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/presentation/widgets/empty_state.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 
@@ -120,7 +120,7 @@ class _RoomTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        '${room.typeLabel()} · $previewText',
+        '${room.typeLabel()} $previewText',
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),

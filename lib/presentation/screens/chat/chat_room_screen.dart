@@ -8,7 +8,7 @@ import 'package:katan/domain/usecases/mark_chat_read_usecase.dart';
 import 'package:katan/domain/usecases/send_chat_message_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/chat_room_cubit.dart';
-import 'package:katan/presentation/utils/formatters.dart';
+import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/presentation/widgets/empty_state.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 

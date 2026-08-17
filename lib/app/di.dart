@@ -19,6 +19,9 @@ import 'package:katan/domain/repositories/task_repository.dart';
 import 'package:katan/domain/usecases/add_task_comment_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_file_usecase.dart';
 import 'package:katan/domain/usecases/get_account_usecase.dart';
+import 'package:katan/domain/usecases/get_notifications_usecase.dart';
+import 'package:katan/domain/usecases/mark_all_notifications_read_usecase.dart';
+import 'package:katan/domain/usecases/mark_notification_read_usecase.dart';
 import 'package:katan/domain/usecases/get_project_usecase.dart';
 import 'package:katan/domain/usecases/get_projects_usecase.dart';
 import 'package:katan/domain/usecases/get_task_comments_usecase.dart';
@@ -90,6 +93,9 @@ Future<void> configureDependencies() async {
         getIt<AccountRemoteDataSource>()
     ))
     ..registerLazySingleton(() => GetAccountUseCase(getIt<AccountRepository>()))
+    ..registerLazySingleton(() => GetNotificationsUseCase(getIt<AccountRepository>()))
+    ..registerLazySingleton(() => MarkNotificationReadUseCase(getIt<AccountRepository>()))
+    ..registerLazySingleton(() => MarkAllNotificationsReadUseCase(getIt<AccountRepository>()))
     ..registerLazySingleton<TaskRemoteDataSource>(() => TaskRemoteDataSource(
       getIt<GrpcClientFactory>(),
       getIt<SessionStorage>(),
