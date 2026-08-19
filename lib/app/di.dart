@@ -33,6 +33,7 @@ import 'package:katan/domain/usecases/logout_usecase.dart';
 import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/data/data_sources/remote/ai_chat_remote_datasource.dart';
 import 'package:katan/data/data_sources/remote/chat_remote_datasource.dart';
+import 'package:katan/data/realtime/account_realtime_service.dart';
 import 'package:katan/data/repositories/ai_chat_repository_impl.dart';
 import 'package:katan/data/repositories/chat_repository_impl.dart';
 import 'package:katan/domain/repositories/ai_chat_repository.dart';
@@ -80,11 +81,6 @@ Future<void> configureDependencies() async {
     ))
     ..registerLazySingleton(() => LoginUseCase(getIt<AuthRepository>()))
     ..registerLazySingleton(() => LogoutUseCase(getIt<AuthRepository>()))
-    ..registerFactory(() => AuthCubit(
-      loginUseCase: getIt<LoginUseCase>(),
-      logoutUseCase: getIt<LogoutUseCase>(),
-      authRepository: getIt<AuthRepository>(),
-    ))
     ..registerLazySingleton<AccountRemoteDataSource>(() => AccountRemoteDataSource(
       getIt<GrpcClientFactory>(),
       getIt<SessionStorage>(),
@@ -96,6 +92,16 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton(() => GetNotificationsUseCase(getIt<AccountRepository>()))
     ..registerLazySingleton(() => MarkNotificationReadUseCase(getIt<AccountRepository>()))
     ..registerLazySingleton(() => MarkAllNotificationsReadUseCase(getIt<AccountRepository>()))
+    ..registerLazySingleton<AccountRealtimeService>(() => AccountRealtimeService(
+      getIt<GrpcClientFactory>(),
+      getIt<SessionStorage>(),
+    ))
+    ..registerFactory(() => AuthCubit(
+      loginUseCase: getIt<LoginUseCase>(),
+      logoutUseCase: getIt<LogoutUseCase>(),
+      authRepository: getIt<AuthRepository>(),
+      realtime: getIt<AccountRealtimeService>(),
+    ))
     ..registerLazySingleton<TaskRemoteDataSource>(() => TaskRemoteDataSource(
       getIt<GrpcClientFactory>(),
       getIt<SessionStorage>(),

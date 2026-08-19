@@ -39,6 +39,23 @@ class ChatMember extends Equatable {
   final int? lastReadMessageId;
   final DateTime? lastReadAt;
 
+  ChatMember copyWith({
+    bool? isOnline,
+    String? lastVisitAt,
+    int? lastReadMessageId,
+    DateTime? lastReadAt,
+  }) {
+    return ChatMember(
+      user: user,
+      role: role,
+      isOnline: isOnline ?? this.isOnline,
+      lastVisitAt: lastVisitAt ?? this.lastVisitAt,
+      joinedAt: joinedAt,
+      lastReadMessageId: lastReadMessageId ?? this.lastReadMessageId,
+      lastReadAt: lastReadAt ?? this.lastReadAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
     user,
@@ -114,6 +131,8 @@ class ChatRoom extends Equatable {
     int? unreadCount,
     List<ChatMember>? members,
     ChatRoomPreview? lastMessage,
+    int? othersLastReadMessageId,
+    DateTime? othersLastReadAt,
   }) {
     return ChatRoom(
       id: id,
@@ -123,8 +142,9 @@ class ChatRoom extends Equatable {
       unreadCount: unreadCount ?? this.unreadCount,
       members: members ?? this.members,
       lastMessage: lastMessage ?? this.lastMessage,
-      othersLastReadMessageId: othersLastReadMessageId,
-      othersLastReadAt: othersLastReadAt,
+      othersLastReadMessageId:
+          othersLastReadMessageId ?? this.othersLastReadMessageId,
+      othersLastReadAt: othersLastReadAt ?? this.othersLastReadAt,
     );
   }
 

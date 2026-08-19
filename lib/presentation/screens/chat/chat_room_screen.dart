@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
+import 'package:katan/core/utils/formatters.dart';
+import 'package:katan/data/realtime/account_realtime_service.dart';
 import 'package:katan/domain/entities/chat.dart';
 import 'package:katan/domain/usecases/get_chat_room_usecase.dart';
 import 'package:katan/domain/usecases/list_chat_messages_usecase.dart';
@@ -8,7 +10,6 @@ import 'package:katan/domain/usecases/mark_chat_read_usecase.dart';
 import 'package:katan/domain/usecases/send_chat_message_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/chat_room_cubit.dart';
-import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/presentation/widgets/empty_state.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 
@@ -35,6 +36,7 @@ class ChatRoomScreen extends StatelessWidget {
         listMessagesUseCase: getIt<ListChatMessagesUseCase>(),
         sendMessageUseCase: getIt<SendChatMessageUseCase>(),
         markReadUseCase: getIt<MarkChatReadUseCase>(),
+        realtime: getIt<AccountRealtimeService>(),
         authCubit: context.read<AuthCubit>(),
       )..load(),
       child: const _ChatRoomView(),
@@ -53,9 +55,25 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
   final _composerController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _composerController.addListener(_onComposerChanged);
+  }
+
+  @override
   void dispose() {
-    _composerController.dispose();
+    _composerController
+      ..removeListener(_onComposerChanged)
+      ..dispose();
     super.dispose();
+  }
+
+  void _onComposerChanged() {
+    if (_composerController.text.trim().isEmpty) {
+      return;
+    }
+
+    context.read<ChatRoomCubit>().emitTyping();
   }
 
   Future<void> _send() async {
@@ -66,6 +84,28 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
     }
   }
 
+  String _presenceSubtitle(ChatRoom room, String currentUsername) {
+    if (!room.isDirect) {
+      return '';
+    }
+
+    for (final member in room.members) {
+      if (member.user.username == currentUsername) {
+        continue;
+      }
+
+      if (member.isOnline) {
+        return 'в сети';
+      }
+
+      if (member.lastVisitAt.trim().isNotEmpty) {
+        return member.lastVisitAt.trim();
+      }
+    }
+
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ChatRoomCubit, ChatRoomState>(
@@ -73,7 +113,6 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
         if (current is! ChatRoomLoaded || current.actionError == null) {
           return false;
         }
-
         return previous is! ChatRoomLoaded || previous.actionError != current.actionError;
       },
       listener: (context, state) {
@@ -89,9 +128,28 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
             room.displayTitle(currentUsername),
           _ => 'Чат',
         };
+        final subtitle = switch (state) {
+          final ChatRoomLoaded loaded when loaded.typingUsers.isNotEmpty => loaded.typingLabel,
+          ChatRoomLoaded(:final room, :final currentUsername) => _presenceSubtitle(room, currentUsername),
+          _ => '',
+        };
 
         return Scaffold(
-          appBar: AppBar(title: Text(title)),
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title),
+                if (subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
           body: switch (state) {
             ChatRoomInitial() || ChatRoomLoading() => const Center(
               child: CircularProgressIndicator(),
@@ -105,6 +163,7 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
               :final currentUsername,
               :final canWrite,
               :final sending,
+              :final room,
             ) => Column(
               children: [
                 Expanded(
@@ -119,9 +178,13 @@ class _ChatRoomViewState extends State<_ChatRoomView> {
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[messages.length - 1 - index];
+                        final isOwn = message.isOwn(currentUsername);
                         return _MessageBubble(
                           message: message,
-                          isOwn: message.isOwn(currentUsername),
+                          isOwn: isOwn,
+                          showRead: isOwn &&
+                              room.othersLastReadMessageId != null &&
+                              message.id <= room.othersLastReadMessageId!,
                         );
                       },
                     ),
@@ -193,10 +256,12 @@ class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
     required this.message,
     required this.isOwn,
+    required this.showRead,
   });
 
   final ChatMessage message;
   final bool isOwn;
+  final bool showRead;
 
   @override
   Widget build(BuildContext context) {
@@ -248,11 +313,24 @@ class _MessageBubble extends StatelessWidget {
               const SizedBox(height: 4),
               Align(
                 alignment: Alignment.centerRight,
-                child: Text(
-                  formatChatTime(message.createdAt),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: foreground.withValues(alpha: 0.7),
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      formatChatTime(message.createdAt),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: foreground.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    if (showRead) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.done_all,
+                        size: 14,
+                        color: scheme.primary.withValues(alpha: 0.8),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],

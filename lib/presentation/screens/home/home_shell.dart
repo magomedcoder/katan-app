@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
+import 'package:katan/data/realtime/account_realtime_service.dart';
 import 'package:katan/domain/entities/account.dart';
 import 'package:katan/domain/usecases/get_account_usecase.dart';
 import 'package:katan/domain/usecases/get_chat_unread_counts_usecase.dart';
@@ -60,13 +63,16 @@ class _HomeShellView extends StatelessWidget {
               authCubit: context.read<AuthCubit>(),
             )..load(),
             child: account.canReadChat
-              ? BlocProvider(
-                create: (context) => ChatRoomsCubit(
-                  listRoomsUseCase: getIt<ListChatRoomsUseCase>(),
-                  getUnreadCountsUseCase: getIt<GetChatUnreadCountsUseCase>(),
-                  authCubit: context.read<AuthCubit>(),
-                )..load(),
-                child: _HomeTabs(account: account, showChat: true),
+              ? _ChatRealtimeHost(
+                child: BlocProvider(
+                  create: (context) => ChatRoomsCubit(
+                    listRoomsUseCase: getIt<ListChatRoomsUseCase>(),
+                    getUnreadCountsUseCase: getIt<GetChatUnreadCountsUseCase>(),
+                    realtime: getIt<AccountRealtimeService>(),
+                    authCubit: context.read<AuthCubit>(),
+                  )..load(),
+                  child: _HomeTabs(account: account, showChat: true),
+                ),
               )
               : _HomeTabs(account: account, showChat: false),
           ),
@@ -74,6 +80,41 @@ class _HomeShellView extends StatelessWidget {
       },
     );
   }
+}
+
+class _ChatRealtimeHost extends StatefulWidget {
+  const _ChatRealtimeHost({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ChatRealtimeHost> createState() => _ChatRealtimeHostState();
+}
+
+class _ChatRealtimeHostState extends State<_ChatRealtimeHost> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    getIt<AccountRealtimeService>().start();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(getIt<AccountRealtimeService>().stop());
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(getIt<AccountRealtimeService>().reconnect());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _HomeTabs extends StatefulWidget {

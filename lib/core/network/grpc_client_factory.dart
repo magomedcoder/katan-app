@@ -85,7 +85,11 @@ class GrpcClientFactory {
     return _channel ?? channelFor(host);
   }
 
-  CallOptions authOptions(String? accessToken, {Duration? timeout}) {
+  CallOptions authOptions(
+    String? accessToken, {
+    Duration? timeout,
+    bool noTimeout = false,
+  }) {
     final metadata = <String, String>{};
     if (accessToken != null && accessToken.isNotEmpty) {
       metadata['Authorization'] = accessToken;
@@ -93,7 +97,7 @@ class GrpcClientFactory {
 
     return CallOptions(
       metadata: metadata,
-      timeout: timeout ?? const Duration(seconds: 30),
+      timeout: noTimeout ? null : (timeout ?? const Duration(seconds: 30)),
     );
   }
 

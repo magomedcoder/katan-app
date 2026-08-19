@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/core/error/failures.dart';
+import 'package:katan/data/realtime/account_realtime_service.dart';
 import 'package:katan/domain/repositories/auth_repository.dart';
 import 'package:katan/domain/usecases/login_usecase.dart';
 import 'package:katan/domain/usecases/logout_usecase.dart';
@@ -46,14 +47,17 @@ class AuthCubit extends Cubit<AuthState> {
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required AuthRepository authRepository,
+    AccountRealtimeService? realtime,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
         _authRepository = authRepository,
+        _realtime = realtime,
         super(const AuthInitial());
 
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
   final AuthRepository _authRepository;
+  final AccountRealtimeService? _realtime;
 
   Future<void> bootstrap() async {
     emit(const AuthLoading());
@@ -109,6 +113,7 @@ class AuthCubit extends Cubit<AuthState> {
     };
     emit(const AuthLoading());
     try {
+      await _realtime?.stop();
       await _logoutUseCase();
     } catch (_) {}
     emit(AuthUnauthenticated(host: host));
