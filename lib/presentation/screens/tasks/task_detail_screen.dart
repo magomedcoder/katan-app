@@ -2,12 +2,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
+import 'package:katan/domain/entities/ai_chat.dart';
 import 'package:katan/domain/entities/file_attachment.dart';
 import 'package:katan/domain/entities/task.dart';
 import 'package:katan/domain/entities/task_comment.dart';
 import 'package:katan/domain/repositories/file_repository.dart';
 import 'package:katan/domain/usecases/add_task_comment_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_file_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/get_task_comments_usecase.dart';
 import 'package:katan/domain/usecases/get_task_files_usecase.dart';
 import 'package:katan/domain/usecases/get_task_usecase.dart';
@@ -15,6 +17,7 @@ import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/task_detail_cubit.dart';
 import 'package:katan/core/utils/formatters.dart';
+import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -93,6 +96,45 @@ class _TaskDetailViewState extends State<_TaskDetailView> {
     }
   }
 
+  Future<void> _askAi(TaskDetail task) async {
+    try {
+      final status = await getIt<GetAiChatStatusUseCase>()();
+      if (!status.canUse || status.hideAskAiButton) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI-чат сейчас недоступен')));
+        }
+        return;
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    final desc = task.description.trim();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AiChatScreen(
+          showCloseButton: true,
+          initialMapContext: AiChatMapContext(
+            kind: 'task',
+            objectId: task.id,
+            title: task.title.isEmpty ? 'Задача #${task.id}' : task.title,
+            path: '/tasks/${task.id}',
+            summary: desc.length > 500 ? '${desc.substring(0, 500)}...' : desc,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<TaskDetailCubit, TaskDetailState>(
@@ -127,6 +169,11 @@ class _TaskDetailViewState extends State<_TaskDetailView> {
               appBar: AppBar(
                 title: Text(task.title.isEmpty ? 'Задача' : task.title),
                 actions: [
+                  IconButton(
+                    tooltip: 'Спросить AI',
+                    onPressed: () => _askAi(task),
+                    icon: const Icon(Icons.smart_toy_outlined),
+                  ),
                   IconButton(
                     tooltip: 'Обновить',
                     onPressed: () => context.read<TaskDetailCubit>().load(),

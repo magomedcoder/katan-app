@@ -106,6 +106,75 @@ class TaskRemoteDataSource {
     }
   }
 
+  Future<TaskDetail> createTask({
+    required String title,
+    required String description,
+    int? projectId,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.createTask(
+        CreateTaskRequest(
+          title: title,
+          description: description,
+          projectId: projectId != null ? Int64(projectId) : Int64.ZERO,
+        ),
+        options: await _authOptions(),
+      );
+      return getTask(response.id.toInt());
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось создать задачу');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<TaskDetail> appendTaskDescription({
+    required int taskId,
+    required String text,
+  }) async {
+    try {
+      final client = await _client();
+      final options = await _authOptions();
+      final current = await client.getTask(
+        GetTaskRequest(id: Int64(taskId)),
+        options: options,
+      );
+      final task = current.task;
+      final prev = task.description.trim();
+      final merged = prev.isEmpty ? text.trim() : '$prev\n\n---\n\n${text.trim()}';
+
+      await client.updateTask(
+        UpdateTaskRequest(
+          id: task.id,
+          title: task.title,
+          description: merged,
+          creatorId: task.hasCreator() ? task.creator.id : Int64.ZERO,
+          assigneeId: task.hasAssignee() ? task.assignee.id : Int64.ZERO,
+          observerIds: task.observers.map((user) => user.id),
+          columnId: task.columnId,
+          dueAt: task.dueAt,
+          tagIds: task.tags.map((tag) => tag.id),
+        ),
+        options: options,
+      );
+
+      final refreshed = await client.getTask(
+        GetTaskRequest(id: Int64(taskId)),
+        options: options,
+      );
+      return mapTaskDetail(refreshed.task);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось обновить описание задачи');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
   Future<TaskServiceClient> _client() async {
     await _requireToken();
     final channel = _factory.requireChannel();

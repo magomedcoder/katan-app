@@ -18,4 +18,15 @@ abstract class TaskRepository {
     required int taskId,
     required String content,
   });
+
+  Future<TaskDetail> createTask({
+    required String title,
+    required String description,
+    int? projectId,
+  });
+
+  Future<TaskDetail> appendTaskDescription({
+    required int taskId,
+    required String text,
+  });
 }

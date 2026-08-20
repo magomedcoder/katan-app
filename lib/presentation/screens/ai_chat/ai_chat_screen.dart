@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:katan/app/di.dart';
+import 'package:katan/core/utils/parse_task_draft.dart';
 import 'package:katan/domain/entities/ai_chat.dart';
 import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/create_ai_chat_session_usecase.dart';
@@ -21,11 +22,20 @@ import 'package:katan/domain/usecases/update_ai_chat_session_title_usecase.dart'
 import 'package:katan/presentation/cubit/ai_chat_cubit.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/core/utils/formatters.dart';
+import 'package:katan/presentation/screens/ai_chat/ai_chat_task_draft_dialog.dart';
+import 'package:katan/presentation/screens/ai_chat/ai_chat_task_insert_dialog.dart';
 import 'package:katan/presentation/widgets/empty_state.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 
 class AiChatScreen extends StatelessWidget {
-  const AiChatScreen({super.key});
+  const AiChatScreen({
+    super.key,
+    this.initialMapContext,
+    this.showCloseButton = false,
+  });
+
+  final AiChatMapContext? initialMapContext;
+  final bool showCloseButton;
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +56,17 @@ class AiChatScreen extends StatelessWidget {
         continueAssistantUseCase: getIt<ContinueAiChatAssistantUseCase>(),
         editUserMessageUseCase: getIt<EditAiChatUserMessageUseCase>(),
         authCubit: context.read<AuthCubit>(),
+        initialMapContext: initialMapContext,
       )..bootstrap(),
-      child: const _AiChatView(),
+      child: _AiChatView(showCloseButton: showCloseButton),
     );
   }
 }
 
 class _AiChatView extends StatefulWidget {
-  const _AiChatView();
+  const _AiChatView({required this.showCloseButton});
+
+  final bool showCloseButton;
 
   @override
   State<_AiChatView> createState() => _AiChatViewState();
@@ -208,6 +221,43 @@ class _AiChatViewState extends State<_AiChatView> {
     }
   }
 
+  Future<void> _insertToTask({
+    required String content,
+    required int taskId,
+    required String taskTitle,
+  }) async {
+    final ok = await showAiChatTaskInsertDialog(
+      context: context,
+      taskId: taskId,
+      content: content,
+      taskTitle: taskTitle,
+    );
+    if (ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Сохранено в задачу')),
+      );
+    }
+  }
+
+  Future<void> _createTaskDraft({
+    required String content,
+    AiChatMapContext? mapContext,
+  }) async {
+    final draft = parseTaskDraftFromAssistantText(content);
+    final description = appendMapContextToTaskText(
+      draft.description,
+      kind: mapContext?.kind,
+      objectId: mapContext?.objectId,
+      title: mapContext?.title,
+      path: mapContext?.path,
+    );
+    await showAiChatTaskDraftDialog(
+      context: context,
+      initialTitle: draft.title,
+      initialDescription: description,
+    );
+  }
+
   List<_ComposerChip> _composerChips(AiChatStatus status) {
     return [
       ...status.proactiveChips.map((chip) => _ComposerChip(
@@ -254,18 +304,27 @@ class _AiChatViewState extends State<_AiChatView> {
       builder: (context, state) {
         return switch (state) {
           AiChatInitial() || AiChatBootstrapping() => Scaffold(
-            appBar: AppBar(title: const Text('AI-чат')),
+            appBar: AppBar(
+              automaticallyImplyLeading: widget.showCloseButton,
+              title: const Text('AI-чат'),
+            ),
             body: const Center(child: CircularProgressIndicator()),
           ),
           AiChatUnavailable(:final message) => Scaffold(
-            appBar: AppBar(title: const Text('AI-чат')),
+            appBar: AppBar(
+              automaticallyImplyLeading: widget.showCloseButton,
+              title: const Text('AI-чат'),
+            ),
             body: EmptyState(
               icon: Icons.smart_toy_outlined,
               message: message,
             ),
           ),
           AiChatFailure(:final message) => Scaffold(
-            appBar: AppBar(title: const Text('AI-чат')),
+            appBar: AppBar(
+              automaticallyImplyLeading: widget.showCloseButton,
+              title: const Text('AI-чат'),
+            ),
             body: ErrorView(
               message: message,
               onRetry: () => context.read<AiChatCubit>().bootstrap(),
@@ -275,12 +334,28 @@ class _AiChatViewState extends State<_AiChatView> {
             :final sessions,
             :final messages,
             :final selectedSession,
+            :final mapContext,
             :final streaming,
             :final loadingMessages,
             :final status,
           ) => Scaffold(
             appBar: AppBar(
-              title: Text(selectedSession?.title.isNotEmpty == true ? selectedSession!.title : 'AI-чат'),
+              automaticallyImplyLeading: widget.showCloseButton,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedSession?.title.isNotEmpty == true
+                      ? selectedSession!.title
+                      : 'AI-чат',
+                  ),
+                  if (mapContext != null)
+                    Text(
+                      mapContext.title.isNotEmpty ? mapContext.title : '${mapContext.kind} #${mapContext.objectId}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                ],
+              ),
               actions: [
                 IconButton(
                   tooltip: 'Настройки сессии',
@@ -354,6 +429,16 @@ class _AiChatViewState extends State<_AiChatView> {
                               : null,
                             onVersionNext: isLastAssistant && !streaming && message.versionIndex < message.versionCount - 1
                               ? () => context.read<AiChatCubit>().shiftAssistantVersion(message.id, 1)
+                              : null,
+                            onInsertToTask: message.isAssistant && !message.isStreaming && message.content.trim().isNotEmpty && mapContext?.kind == 'task' && (mapContext?.objectId ?? 0) > 0
+                              ? () => _insertToTask(
+                                content: message.content,
+                                taskId: mapContext!.objectId,
+                                taskTitle: mapContext.title,
+                              )
+                              : null,
+                            onCreateTask: message.isAssistant && !message.isStreaming && message.content.trim().isNotEmpty
+                              ? () => _createTaskDraft(content: message.content, mapContext: mapContext)
                               : null,
                           );
                         },
@@ -637,6 +722,8 @@ class _MessageBubble extends StatelessWidget {
     this.onEdit,
     this.onVersionPrev,
     this.onVersionNext,
+    this.onInsertToTask,
+    this.onCreateTask,
   });
 
   final AiChatMessage message;
@@ -646,6 +733,8 @@ class _MessageBubble extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onVersionPrev;
   final VoidCallback? onVersionNext;
+  final VoidCallback? onInsertToTask;
+  final VoidCallback? onCreateTask;
 
   @override
   Widget build(BuildContext context) {
@@ -659,6 +748,8 @@ class _MessageBubble extends StatelessWidget {
       onEdit != null ||
       onRegenerate != null ||
       onContinue != null ||
+      onInsertToTask != null ||
+      onCreateTask != null ||
       showVersions ||
       message.content.isNotEmpty
     );
@@ -768,6 +859,20 @@ class _MessageBubble extends StatelessWidget {
                       tooltip: 'Изменить',
                       onPressed: onEdit,
                       icon: const Icon(Icons.edit_outlined, size: 18),
+                    ),
+                  if (onInsertToTask != null)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: 'В задачу',
+                      onPressed: onInsertToTask,
+                      icon: const Icon(Icons.playlist_add_check, size: 18),
+                    ),
+                  if (onCreateTask != null)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: 'Создать задачу',
+                      onPressed: onCreateTask,
+                      icon: const Icon(Icons.add_task, size: 18),
                     ),
                   if (message.content.isNotEmpty)
                     IconButton(

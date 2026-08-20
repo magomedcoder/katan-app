@@ -33,4 +33,21 @@ class TaskRepositoryImpl implements TaskRepository {
     required int taskId,
     required String content,
   }) => _remote.addTaskComment(taskId: taskId, content: content);
+
+  @override
+  Future<TaskDetail> createTask({
+    required String title,
+    required String description,
+    int? projectId,
+  }) => _remote.createTask(
+    title: title,
+    description: description,
+    projectId: projectId,
+  );
+
+  @override
+  Future<TaskDetail> appendTaskDescription({
+    required int taskId,
+    required String text,
+  }) => _remote.appendTaskDescription(taskId: taskId, text: text);
 }

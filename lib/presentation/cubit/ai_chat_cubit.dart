@@ -51,6 +51,7 @@ class AiChatReady extends AiChatState {
     required this.sessions,
     required this.messages,
     this.selectedSessionId,
+    this.mapContext,
     this.streaming = false,
     this.loadingMessages = false,
     this.actionError,
@@ -60,6 +61,7 @@ class AiChatReady extends AiChatState {
   final List<AiChatSession> sessions;
   final List<AiChatMessage> messages;
   final int? selectedSessionId;
+  final AiChatMapContext? mapContext;
   final bool streaming;
   final bool loadingMessages;
   final String? actionError;
@@ -85,6 +87,8 @@ class AiChatReady extends AiChatState {
     List<AiChatMessage>? messages,
     int? selectedSessionId,
     bool clearSelectedSession = false,
+    AiChatMapContext? mapContext,
+    bool clearMapContext = false,
     bool? streaming,
     bool? loadingMessages,
     String? actionError,
@@ -95,6 +99,7 @@ class AiChatReady extends AiChatState {
       sessions: sessions ?? this.sessions,
       messages: messages ?? this.messages,
       selectedSessionId: clearSelectedSession ? null : (selectedSessionId ?? this.selectedSessionId),
+      mapContext: clearMapContext ? null : (mapContext ?? this.mapContext),
       streaming: streaming ?? this.streaming,
       loadingMessages: loadingMessages ?? this.loadingMessages,
       actionError: clearActionError ? null : (actionError ?? this.actionError),
@@ -107,6 +112,7 @@ class AiChatReady extends AiChatState {
     sessions,
     messages,
     selectedSessionId,
+    mapContext,
     streaming,
     loadingMessages,
     actionError,
@@ -139,6 +145,7 @@ class AiChatCubit extends Cubit<AiChatState> {
     required ContinueAiChatAssistantUseCase continueAssistantUseCase,
     required EditAiChatUserMessageUseCase editUserMessageUseCase,
     required AuthCubit authCubit,
+    this.initialMapContext,
   })  : _getStatusUseCase = getStatusUseCase,
         _getSessionsUseCase = getSessionsUseCase,
         _createSessionUseCase = createSessionUseCase,
@@ -154,8 +161,10 @@ class AiChatCubit extends Cubit<AiChatState> {
         _continueAssistantUseCase = continueAssistantUseCase,
         _editUserMessageUseCase = editUserMessageUseCase,
         _authCubit = authCubit,
+        _mapContext = initialMapContext,
         super(const AiChatInitial());
 
+  final AiChatMapContext? initialMapContext;
   final GetAiChatStatusUseCase _getStatusUseCase;
   final GetAiChatSessionsUseCase _getSessionsUseCase;
   final CreateAiChatSessionUseCase _createSessionUseCase;
@@ -172,6 +181,7 @@ class AiChatCubit extends Cubit<AiChatState> {
   final EditAiChatUserMessageUseCase _editUserMessageUseCase;
   final AuthCubit _authCubit;
 
+  AiChatMapContext? _mapContext;
   AiChatStreamHandle? _streamHandle;
   StreamSubscription<AiChatChunk>? _streamSub;
   int _streamingMessageId = -1;
@@ -201,10 +211,15 @@ class AiChatCubit extends Cubit<AiChatState> {
         status: status,
         sessions: sessions,
         messages: const [],
-        selectedSessionId: sessions.isNotEmpty ? sessions.first.id : null,
+        mapContext: _mapContext,
+        selectedSessionId: _mapContext != null
+          ? null
+          : (sessions.isNotEmpty ? sessions.first.id : null),
       ));
 
-      if (sessions.isNotEmpty) {
+      if (_mapContext != null) {
+        await createSession();
+      } else if (sessions.isNotEmpty) {
         await selectSession(sessions.first.id);
       }
     } on AuthFailure catch (e) {
@@ -251,12 +266,20 @@ class AiChatCubit extends Cubit<AiChatState> {
       return;
     }
     try {
-      final session = await _createSessionUseCase(templateId: templateId);
+      final session = await _createSessionUseCase(
+        templateId: templateId,
+        mapContext: _mapContext,
+      );
+      if (session.mapContext != null) {
+        _mapContext = session.mapContext;
+      }
+
       final sessions = [session, ...current.sessions];
       emit(current.copyWith(
         sessions: sessions,
         selectedSessionId: session.id,
         messages: const [],
+        mapContext: _mapContext,
         clearActionError: true,
       ));
     } on AuthFailure catch (e) {
@@ -396,12 +419,21 @@ class AiChatCubit extends Cubit<AiChatState> {
 
     try {
       final messages = await _loadMessages(sessionId);
+      final session = current.sessions.cast<AiChatSession?>().firstWhere(
+        (item) => item?.id == sessionId,
+        orElse: () => null,
+      );
+      if (session?.mapContext != null) {
+        _mapContext = session!.mapContext;
+      }
+
       final latest = state;
       if (latest is AiChatReady) {
         emit(latest.copyWith(
           messages: messages,
           loadingMessages: false,
           selectedSessionId: sessionId,
+          mapContext: _mapContext,
         ));
       }
     } on AuthFailure catch (e) {
@@ -440,12 +472,17 @@ class AiChatCubit extends Cubit<AiChatState> {
     var sessionId = current.selectedSessionId;
     if (sessionId == null) {
       try {
-        final session = await _createSessionUseCase();
+        final session = await _createSessionUseCase(mapContext: _mapContext);
+        if (session.mapContext != null) {
+          _mapContext = session.mapContext;
+        }
+
         sessionId = session.id;
         emit(current.copyWith(
           sessions: [session, ...current.sessions],
           selectedSessionId: session.id,
           messages: const [],
+          mapContext: _mapContext,
         ));
       } on Failure catch (e) {
         emit(current.copyWith(actionError: e.message));
@@ -489,6 +526,7 @@ class AiChatCubit extends Cubit<AiChatState> {
       () => _sendMessageUseCase(
         sessionId: targetSessionId,
         userMessage: trimmed,
+        mapContext: _mapContext,
       ),
     );
   }

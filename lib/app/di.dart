@@ -17,6 +17,8 @@ import 'package:katan/domain/repositories/file_repository.dart';
 import 'package:katan/domain/repositories/project_repository.dart';
 import 'package:katan/domain/repositories/task_repository.dart';
 import 'package:katan/domain/usecases/add_task_comment_usecase.dart';
+import 'package:katan/domain/usecases/append_task_description_usecase.dart';
+import 'package:katan/domain/usecases/create_task_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_file_usecase.dart';
 import 'package:katan/domain/usecases/get_account_usecase.dart';
 import 'package:katan/domain/usecases/get_notifications_usecase.dart';
@@ -119,6 +121,12 @@ Future<void> configureDependencies() async {
       getIt<TaskRepository>()
     ))
     ..registerLazySingleton(() => AddTaskCommentUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => CreateTaskUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => AppendTaskDescriptionUseCase(
       getIt<TaskRepository>()
     ))
     ..registerLazySingleton<ProjectRemoteDataSource>(() => ProjectRemoteDataSource(
