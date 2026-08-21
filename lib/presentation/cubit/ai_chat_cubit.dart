@@ -12,10 +12,13 @@ import 'package:katan/domain/usecases/edit_ai_chat_user_message_usecase.dart';
 import 'package:katan/domain/usecases/fork_ai_chat_session_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_at_version_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_sessions_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/list_ai_chat_assistant_regenerations_usecase.dart';
+import 'package:katan/domain/usecases/put_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/regenerate_ai_chat_assistant_usecase.dart';
+import 'package:katan/core/utils/ai_chat_attachments.dart';
 import 'package:katan/domain/usecases/send_ai_chat_message_usecase.dart';
 import 'package:katan/domain/usecases/update_ai_chat_session_system_prompt_usecase.dart';
 import 'package:katan/domain/usecases/update_ai_chat_session_title_usecase.dart';
@@ -52,6 +55,8 @@ class AiChatReady extends AiChatState {
     required this.messages,
     this.selectedSessionId,
     this.mapContext,
+    this.pendingAttachments = const [],
+    this.uploadingAttachment = false,
     this.streaming = false,
     this.loadingMessages = false,
     this.actionError,
@@ -62,6 +67,8 @@ class AiChatReady extends AiChatState {
   final List<AiChatMessage> messages;
   final int? selectedSessionId;
   final AiChatMapContext? mapContext;
+  final List<AiChatPendingAttachment> pendingAttachments;
+  final bool uploadingAttachment;
   final bool streaming;
   final bool loadingMessages;
   final String? actionError;
@@ -89,6 +96,8 @@ class AiChatReady extends AiChatState {
     bool clearSelectedSession = false,
     AiChatMapContext? mapContext,
     bool clearMapContext = false,
+    List<AiChatPendingAttachment>? pendingAttachments,
+    bool? uploadingAttachment,
     bool? streaming,
     bool? loadingMessages,
     String? actionError,
@@ -100,6 +109,8 @@ class AiChatReady extends AiChatState {
       messages: messages ?? this.messages,
       selectedSessionId: clearSelectedSession ? null : (selectedSessionId ?? this.selectedSessionId),
       mapContext: clearMapContext ? null : (mapContext ?? this.mapContext),
+      pendingAttachments: pendingAttachments ?? this.pendingAttachments,
+      uploadingAttachment: uploadingAttachment ?? this.uploadingAttachment,
       streaming: streaming ?? this.streaming,
       loadingMessages: loadingMessages ?? this.loadingMessages,
       actionError: clearActionError ? null : (actionError ?? this.actionError),
@@ -113,6 +124,8 @@ class AiChatReady extends AiChatState {
     messages,
     selectedSessionId,
     mapContext,
+    pendingAttachments,
+    uploadingAttachment,
     streaming,
     loadingMessages,
     actionError,
@@ -144,6 +157,8 @@ class AiChatCubit extends Cubit<AiChatState> {
     required RegenerateAiChatAssistantUseCase regenerateAssistantUseCase,
     required ContinueAiChatAssistantUseCase continueAssistantUseCase,
     required EditAiChatUserMessageUseCase editUserMessageUseCase,
+    required PutAiChatSessionFileUseCase putSessionFileUseCase,
+    required GetAiChatSessionFileUseCase getSessionFileUseCase,
     required AuthCubit authCubit,
     this.initialMapContext,
   })  : _getStatusUseCase = getStatusUseCase,
@@ -160,6 +175,8 @@ class AiChatCubit extends Cubit<AiChatState> {
         _regenerateAssistantUseCase = regenerateAssistantUseCase,
         _continueAssistantUseCase = continueAssistantUseCase,
         _editUserMessageUseCase = editUserMessageUseCase,
+        _putSessionFileUseCase = putSessionFileUseCase,
+        _getSessionFileUseCase = getSessionFileUseCase,
         _authCubit = authCubit,
         _mapContext = initialMapContext,
         super(const AiChatInitial());
@@ -179,6 +196,8 @@ class AiChatCubit extends Cubit<AiChatState> {
   final RegenerateAiChatAssistantUseCase _regenerateAssistantUseCase;
   final ContinueAiChatAssistantUseCase _continueAssistantUseCase;
   final EditAiChatUserMessageUseCase _editUserMessageUseCase;
+  final PutAiChatSessionFileUseCase _putSessionFileUseCase;
+  final GetAiChatSessionFileUseCase _getSessionFileUseCase;
   final AuthCubit _authCubit;
 
   AiChatMapContext? _mapContext;
@@ -279,6 +298,7 @@ class AiChatCubit extends Cubit<AiChatState> {
         sessions: sessions,
         selectedSessionId: session.id,
         messages: const [],
+        pendingAttachments: const [],
         mapContext: _mapContext,
         clearActionError: true,
       ));
@@ -414,6 +434,7 @@ class AiChatCubit extends Cubit<AiChatState> {
     emit(current.copyWith(
       selectedSessionId: sessionId,
       loadingMessages: true,
+      pendingAttachments: const [],
       clearActionError: true,
     ));
 
@@ -458,14 +479,148 @@ class AiChatCubit extends Cubit<AiChatState> {
     }
   }
 
+  Future<void> uploadAttachment({
+    required String filename,
+    required List<int> content,
+  }) async {
+    final current = state;
+    if (current is! AiChatReady || current.streaming || current.uploadingAttachment) {
+      return;
+    }
+
+    if (!current.status.attachmentsAvailable) {
+      emit(current.copyWith(actionError: 'Вложения недоступны'));
+      return;
+    }
+
+    if (isAiChatImageFileName(filename) && !current.status.imageUploadAvailable) {
+      emit(current.copyWith(actionError: 'Загрузка изображений отключена'));
+      return;
+    }
+
+    if (!isAiChatAttachmentFileName(filename, imageUploadEnabled: current.status.imageUploadAvailable)) {
+      emit(current.copyWith(actionError: 'Этот тип файла не поддерживается'));
+      return;
+    }
+
+    if (current.pendingAttachments.length >= aiChatMaxPendingAttachments) {
+      emit(current.copyWith(
+        actionError: 'Не более $aiChatMaxPendingAttachments вложений на сообщение',
+      ));
+      return;
+    }
+
+    var sessionId = current.selectedSessionId;
+    if (sessionId == null) {
+      try {
+        final session = await _createSessionUseCase(mapContext: _mapContext);
+        if (session.mapContext != null) {
+          _mapContext = session.mapContext;
+        }
+
+        sessionId = session.id;
+        emit(current.copyWith(
+          sessions: [session, ...current.sessions],
+          selectedSessionId: session.id,
+          messages: const [],
+          pendingAttachments: const [],
+          mapContext: _mapContext,
+        ));
+      } on Failure catch (e) {
+        emit(current.copyWith(actionError: e.message));
+        return;
+      }
+    }
+
+    final ready = state;
+    if (ready is! AiChatReady) {
+      return;
+    }
+
+    emit(ready.copyWith(uploadingAttachment: true, clearActionError: true));
+
+    try {
+      final attached = await _putSessionFileUseCase(
+        sessionId: sessionId,
+        filename: filename,
+        content: content,
+      );
+      final latest = state;
+      if (latest is AiChatReady) {
+        emit(latest.copyWith(
+          pendingAttachments: [...latest.pendingAttachments, attached],
+          uploadingAttachment: false,
+        ));
+      }
+    } on AuthFailure catch (e) {
+      emit(AiChatFailure(e.message));
+      await _authCubit.logout();
+    } on Failure catch (e) {
+      final latest = state;
+      if (latest is AiChatReady) {
+        emit(latest.copyWith(
+          uploadingAttachment: false,
+          actionError: e.message,
+        ));
+      }
+    } catch (e) {
+      final latest = state;
+      if (latest is AiChatReady) {
+        emit(latest.copyWith(
+          uploadingAttachment: false,
+          actionError: e.toString(),
+        ));
+      }
+    }
+  }
+
+  void removePendingAttachment(int fileId) {
+    final current = state;
+    if (current is! AiChatReady) {
+      return;
+    }
+
+    emit(current.copyWith(pendingAttachments: current.pendingAttachments.where((item) => item.fileId != fileId).toList()));
+  }
+
+  Future<AiChatSessionFile?> fetchSessionFile(int fileId) async {
+    final current = state;
+    if (current is! AiChatReady) {
+      return null;
+    }
+
+    final sessionId = current.selectedSessionId;
+    if (sessionId == null) {
+      return null;
+    }
+
+    try {
+      return await _getSessionFileUseCase(
+        sessionId: sessionId,
+        fileId: fileId,
+      );
+    } on AuthFailure catch (e) {
+      emit(AiChatFailure(e.message));
+      await _authCubit.logout();
+      return null;
+    } on Failure catch (e) {
+      emit(current.copyWith(actionError: e.message));
+      return null;
+    } catch (e) {
+      emit(current.copyWith(actionError: e.toString()));
+      return null;
+    }
+  }
+
   Future<void> sendMessage(String text) async {
     final current = state;
-    if (current is! AiChatReady || current.streaming) {
+    if (current is! AiChatReady || current.streaming || current.uploadingAttachment) {
       return;
     }
 
     final trimmed = text.trim();
-    if (trimmed.isEmpty) {
+    final attachments = List<AiChatPendingAttachment>.from(current.pendingAttachments);
+    if (trimmed.isEmpty && attachments.isEmpty) {
       return;
     }
 
@@ -497,6 +652,10 @@ class AiChatCubit extends Cubit<AiChatState> {
       return;
     }
 
+    final attachLabel = attachments.length == 1
+        ? attachments.first.name
+        : (attachments.length > 1 ? '${attachments.length} файла' : null);
+
     final userMessage = AiChatMessage(
       id: DateTime.now().millisecondsSinceEpoch,
       role: 'user',
@@ -504,6 +663,8 @@ class AiChatCubit extends Cubit<AiChatState> {
       reasoning: '',
       createdAt: DateTime.now(),
       toolSteps: const [],
+      attachmentFileId: attachments.length == 1 ? attachments.first.fileId : null,
+      attachmentName: attachLabel,
     );
     _streamingMessageId = _draftMessageId;
     final assistantDraft = AiChatMessage(
@@ -518,6 +679,7 @@ class AiChatCubit extends Cubit<AiChatState> {
 
     emit(ready.copyWith(
       messages: [...ready.messages, userMessage, assistantDraft],
+      pendingAttachments: const [],
       streaming: true,
       clearActionError: true,
     ));
@@ -526,6 +688,7 @@ class AiChatCubit extends Cubit<AiChatState> {
       () => _sendMessageUseCase(
         sessionId: targetSessionId,
         userMessage: trimmed,
+        attachmentFileIds: attachments.map((item) => item.fileId).toList(),
         mapContext: _mapContext,
       ),
     );

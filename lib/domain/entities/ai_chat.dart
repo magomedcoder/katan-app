@@ -231,6 +231,47 @@ class AiChatMessage extends Equatable {
   ];
 }
 
+class AiChatPendingAttachment extends Equatable {
+  const AiChatPendingAttachment({
+    required this.fileId,
+    required this.name,
+  });
+
+  final int fileId;
+  final String name;
+
+  @override
+  List<Object?> get props => [fileId, name];
+}
+
+class AiChatSessionFile extends Equatable {
+  const AiChatSessionFile({
+    required this.fileId,
+    required this.filename,
+    required this.mimeType,
+    required this.content,
+  });
+
+  final int fileId;
+  final String filename;
+  final String mimeType;
+  final List<int> content;
+
+  bool get isImage => mimeType.startsWith('image/');
+
+  bool get isText {
+    return mimeType.startsWith('text/') ||
+        mimeType.contains('json') ||
+        filename.toLowerCase().endsWith('.md') ||
+        filename.toLowerCase().endsWith('.txt') ||
+        filename.toLowerCase().endsWith('.csv') ||
+        filename.toLowerCase().endsWith('.json');
+  }
+
+  @override
+  List<Object?> get props => [fileId, filename, mimeType, content];
+}
+
 enum AiChatChunkKind { text, reasoning, notice, toolStatus }
 
 class AiChatChunk extends Equatable {

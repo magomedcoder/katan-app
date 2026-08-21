@@ -327,6 +327,62 @@ class AiChatRemoteDataSource {
     }
   }
 
+  Future<domain.AiChatPendingAttachment> putSessionFile({
+    required int sessionId,
+    required String filename,
+    required List<int> content,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.putSessionFile(
+        AiChatPutSessionFileRequest(
+          sessionId: Int64(sessionId),
+          filename: filename,
+          content: content,
+        ),
+        options: await _authOptions(timeout: const Duration(minutes: 5)),
+      );
+      return domain.AiChatPendingAttachment(
+        fileId: response.fileId.toInt(),
+        name: filename,
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось загрузить файл');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<domain.AiChatSessionFile> getSessionFile({
+    required int sessionId,
+    required int fileId,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.getSessionFile(
+        AiChatGetSessionFileRequest(
+          sessionId: Int64(sessionId),
+          fileId: Int64(fileId),
+        ),
+        options: await _authOptions(timeout: const Duration(minutes: 5)),
+      );
+      return domain.AiChatSessionFile(
+        fileId: response.fileId.toInt(),
+        filename: response.filename,
+        mimeType: response.mimeType,
+        content: response.content,
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось скачать файл');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
   AiChatStreamHandle _wrapChunkStream(
     ResponseStream<AiChatChunk> response, {
     required String fallback,

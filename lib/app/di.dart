@@ -53,9 +53,11 @@ import 'package:katan/domain/usecases/edit_ai_chat_user_message_usecase.dart';
 import 'package:katan/domain/usecases/fork_ai_chat_session_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_at_version_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_sessions_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/list_ai_chat_assistant_regenerations_usecase.dart';
+import 'package:katan/domain/usecases/put_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/regenerate_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/send_ai_chat_message_usecase.dart';
 import 'package:katan/domain/usecases/update_ai_chat_session_system_prompt_usecase.dart';
@@ -205,6 +207,12 @@ Future<void> configureDependencies() async {
         getIt<AiChatRepository>()
     ))
     ..registerLazySingleton(() => GetAiChatMessagesAtVersionUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => PutAiChatSessionFileUseCase(
+        getIt<AiChatRepository>()
+    ))
+    ..registerLazySingleton(() => GetAiChatSessionFileUseCase(
         getIt<AiChatRepository>()
     ))
     ..registerLazySingleton<ChatRemoteDataSource>(() => ChatRemoteDataSource(

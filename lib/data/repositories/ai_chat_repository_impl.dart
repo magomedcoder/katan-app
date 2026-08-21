@@ -111,4 +111,24 @@ class AiChatRepositoryImpl implements AiChatRepository {
     userMessageId: userMessageId,
     newContent: newContent,
   );
+
+  @override
+  Future<AiChatPendingAttachment> putSessionFile({
+    required int sessionId,
+    required String filename,
+    required List<int> content,
+  }) => _remote.putSessionFile(
+    sessionId: sessionId,
+    filename: filename,
+    content: content,
+  );
+
+  @override
+  Future<AiChatSessionFile> getSessionFile({
+    required int sessionId,
+    required int fileId,
+  }) => _remote.getSessionFile(
+      sessionId: sessionId,
+      fileId: fileId
+  );
 }

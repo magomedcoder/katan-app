@@ -1,8 +1,12 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:katan/app/di.dart';
+import 'package:katan/core/utils/ai_chat_attachments.dart';
 import 'package:katan/core/utils/parse_task_draft.dart';
 import 'package:katan/domain/entities/ai_chat.dart';
 import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
@@ -12,9 +16,11 @@ import 'package:katan/domain/usecases/edit_ai_chat_user_message_usecase.dart';
 import 'package:katan/domain/usecases/fork_ai_chat_session_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_at_version_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_messages_usecase.dart';
+import 'package:katan/domain/usecases/get_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_sessions_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/list_ai_chat_assistant_regenerations_usecase.dart';
+import 'package:katan/domain/usecases/put_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/regenerate_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/send_ai_chat_message_usecase.dart';
 import 'package:katan/domain/usecases/update_ai_chat_session_system_prompt_usecase.dart';
@@ -55,6 +61,8 @@ class AiChatScreen extends StatelessWidget {
         regenerateAssistantUseCase: getIt<RegenerateAiChatAssistantUseCase>(),
         continueAssistantUseCase: getIt<ContinueAiChatAssistantUseCase>(),
         editUserMessageUseCase: getIt<EditAiChatUserMessageUseCase>(),
+        putSessionFileUseCase: getIt<PutAiChatSessionFileUseCase>(),
+        getSessionFileUseCase: getIt<GetAiChatSessionFileUseCase>(),
         authCubit: context.read<AuthCubit>(),
         initialMapContext: initialMapContext,
       )..bootstrap(),
@@ -95,6 +103,110 @@ class _AiChatViewState extends State<_AiChatView> {
         curve: Curves.easeOut,
       );
     });
+  }
+
+  Future<void> _pickAttachments(AiChatStatus status) async {
+    if (!status.attachmentsAvailable) {
+      return;
+    }
+
+    final allowed = status.imageUploadAvailable ? aiChatAttachmentExtensions : aiChatDocumentExtensions;
+    final extensions = allowed.map((ext) => ext.startsWith('.') ? ext.substring(1) : ext).toList();
+
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      withData: true,
+      type: FileType.custom,
+      allowedExtensions: extensions,
+    );
+    if (!mounted || result == null || result.files.isEmpty) {
+      return;
+    }
+
+    final cubit = context.read<AiChatCubit>();
+    for (final file in result.files) {
+      final bytes = file.bytes;
+      if (bytes == null) {
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Не удалось прочитать ${file.name}')));
+        continue;
+      }
+      await cubit.uploadAttachment(
+          filename: file.name,
+          content: bytes
+      );
+    }
+  }
+
+  Future<void> _openSessionFile(AiChatMessage message) async {
+    final fileId = message.attachmentFileId;
+    if (fileId == null || fileId <= 0) {
+      return;
+    }
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ),
+    );
+
+    final file = await context.read<AiChatCubit>().fetchSessionFile(fileId);
+    if (!mounted) {
+      return;
+    }
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (file == null) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        Widget body;
+        if (file.isImage) {
+          body = InteractiveViewer(
+            child: Image.memory(
+              Uint8List.fromList(file.content),
+              fit: BoxFit.contain,
+            ),
+          );
+        } else if (file.isText) {
+          final text = utf8.decode(file.content, allowMalformed: true);
+          body = SingleChildScrollView(child: SelectableText(text));
+        } else {
+          body = Text(
+            'Файл «${file.filename}» (${file.mimeType.isEmpty ? 'binary' : file.mimeType}, ${file.content.length} байт).\n'
+            'Просмотр этого типа на мобиле пока не поддерживается.',
+          );
+        }
+
+        return AlertDialog(
+          title: Text(file.filename),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: MediaQuery.sizeOf(dialogContext).height * 0.5,
+            child: body,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Закрыть'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _openSessionsSheet() async {
@@ -335,6 +447,8 @@ class _AiChatViewState extends State<_AiChatView> {
             :final messages,
             :final selectedSession,
             :final mapContext,
+            :final pendingAttachments,
+            :final uploadingAttachment,
             :final streaming,
             :final loadingMessages,
             :final status,
@@ -440,6 +554,9 @@ class _AiChatViewState extends State<_AiChatView> {
                             onCreateTask: message.isAssistant && !message.isStreaming && message.content.trim().isNotEmpty
                               ? () => _createTaskDraft(content: message.content, mapContext: mapContext)
                               : null,
+                            onOpenAttachment: message.attachmentFileId != null && (message.attachmentFileId ?? 0) > 0
+                              ? () => _openSessionFile(message)
+                              : null,
                           );
                         },
                       ),
@@ -463,6 +580,37 @@ class _AiChatViewState extends State<_AiChatView> {
                       },
                     ),
                   ),
+                if (pendingAttachments.isNotEmpty || uploadingAttachment)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        ...pendingAttachments.map(
+                          (item) => InputChip(
+                            avatar: Icon(
+                              isAiChatImageFileName(item.name)
+                                ? Icons.image_outlined
+                                : Icons.attach_file,
+                              size: 16,
+                            ),
+                            label: Text(item.name),
+                            onDeleted: streaming
+                              ? null
+                              : () => context.read<AiChatCubit>().removePendingAttachment(item.fileId),
+                          ),
+                        ),
+                        if (uploadingAttachment)
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
+                  ),
                 SafeArea(
                   top: false,
                   child: Padding(
@@ -470,6 +618,14 @@ class _AiChatViewState extends State<_AiChatView> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        if (status.attachmentsAvailable && !streaming)
+                          IconButton(
+                            tooltip: 'Прикрепить файл',
+                            onPressed: uploadingAttachment
+                              ? null
+                              : () => _pickAttachments(status),
+                            icon: const Icon(Icons.attach_file),
+                          ),
                         Expanded(
                           child: TextField(
                             controller: _composerController,
@@ -493,13 +649,15 @@ class _AiChatViewState extends State<_AiChatView> {
                         else
                           IconButton.filled(
                             tooltip: 'Отправить',
-                            onPressed: () async {
-                              final text = _composerController.text;
-                              await context.read<AiChatCubit>().sendMessage(text);
-                              if (mounted) {
-                                _composerController.clear();
-                              }
-                            },
+                            onPressed: uploadingAttachment
+                              ? null
+                              : () async {
+                                final text = _composerController.text;
+                                await context.read<AiChatCubit>().sendMessage(text);
+                                if (mounted) {
+                                  _composerController.clear();
+                                }
+                              },
                             icon: const Icon(Icons.send),
                           ),
                       ],
@@ -724,6 +882,7 @@ class _MessageBubble extends StatelessWidget {
     this.onVersionNext,
     this.onInsertToTask,
     this.onCreateTask,
+    this.onOpenAttachment,
   });
 
   final AiChatMessage message;
@@ -735,6 +894,7 @@ class _MessageBubble extends StatelessWidget {
   final VoidCallback? onVersionNext;
   final VoidCallback? onInsertToTask;
   final VoidCallback? onCreateTask;
+  final VoidCallback? onOpenAttachment;
 
   @override
   Widget build(BuildContext context) {
@@ -776,6 +936,38 @@ class _MessageBubble extends StatelessWidget {
                   style: theme.textTheme.labelSmall?.copyWith(color: fg),
                 ),
                 const SizedBox(height: 4),
+                if (message.attachmentName != null && message.attachmentName!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: InkWell(
+                      onTap: onOpenAttachment,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isAiChatImageFileName(message.attachmentName!)
+                              ? Icons.image_outlined
+                              : Icons.attach_file,
+                            size: 16,
+                            color: fg,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              message.attachmentName!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: fg,
+                                decoration: onOpenAttachment != null
+                                  ? TextDecoration.underline
+                                  : null,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 if (message.toolSteps.isNotEmpty) ...[
                   ...message.toolSteps.map(
                     (step) => Padding(
@@ -796,7 +988,10 @@ class _MessageBubble extends StatelessWidget {
                     child: _ReasoningBlock(reasoning: message.reasoning),
                   ),
                 if (isUser)
-                  Text(message.content, style: TextStyle(color: fg))
+                  if (message.content.isNotEmpty)
+                    Text(message.content, style: TextStyle(color: fg))
+                  else
+                    const SizedBox.shrink()
                 else
                   MarkdownBody(
                     data: message.content.isEmpty && message.isStreaming ? '...' : message.content,

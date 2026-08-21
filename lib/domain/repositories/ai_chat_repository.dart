@@ -61,6 +61,17 @@ abstract class AiChatRepository {
     required int userMessageId,
     required String newContent,
   });
+
+  Future<AiChatPendingAttachment> putSessionFile({
+    required int sessionId,
+    required String filename,
+    required List<int> content,
+  });
+
+  Future<AiChatSessionFile> getSessionFile({
+    required int sessionId,
+    required int fileId,
+  });
 }
 
 class AiChatStreamHandle {
