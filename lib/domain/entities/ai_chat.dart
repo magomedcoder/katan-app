@@ -91,6 +91,9 @@ class AiChatStatus extends Equatable {
     required this.sessionTemplates,
     required this.quickPrompts,
     this.proactiveChips = const [],
+    this.mcpAvailable = false,
+    this.webSearchAvailable = false,
+    this.integrationsAvailable = false,
   });
 
   final bool enabled;
@@ -101,6 +104,9 @@ class AiChatStatus extends Equatable {
   final List<AiChatSessionTemplate> sessionTemplates;
   final List<AiChatQuickPrompt> quickPrompts;
   final List<AiChatProactiveChip> proactiveChips;
+  final bool mcpAvailable;
+  final bool webSearchAvailable;
+  final bool integrationsAvailable;
 
   bool get canUse => enabled && llmConnected;
 
@@ -114,6 +120,9 @@ class AiChatStatus extends Equatable {
     sessionTemplates,
     quickPrompts,
     proactiveChips,
+    mcpAvailable,
+    webSearchAvailable,
+    integrationsAvailable,
   ];
 }
 
@@ -283,7 +292,9 @@ class AiChatChunk extends Equatable {
     required this.sessionTitle,
     required this.kind,
     this.toolDisplayName,
+    this.toolName,
     this.toolStatus,
+    this.toolCategory,
     this.assistantFinalText,
     this.assistantFinalReasoning,
     this.assistantFinalToolSteps = const [],
@@ -296,7 +307,9 @@ class AiChatChunk extends Equatable {
   final String sessionTitle;
   final AiChatChunkKind kind;
   final String? toolDisplayName;
+  final String? toolName;
   final String? toolStatus;
+  final String? toolCategory;
   final String? assistantFinalText;
   final String? assistantFinalReasoning;
   final List<AiChatToolStep> assistantFinalToolSteps;
@@ -310,7 +323,9 @@ class AiChatChunk extends Equatable {
     sessionTitle,
     kind,
     toolDisplayName,
+    toolName,
     toolStatus,
+    toolCategory,
     assistantFinalText,
     assistantFinalReasoning,
     assistantFinalToolSteps,

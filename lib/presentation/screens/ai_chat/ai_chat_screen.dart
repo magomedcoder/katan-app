@@ -7,6 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:katan/app/di.dart';
 import 'package:katan/core/utils/ai_chat_attachments.dart';
+import 'package:katan/core/utils/ai_chat_tool_steps_ui.dart';
+import 'package:katan/core/utils/ai_chat_write_confirm.dart';
+import 'package:katan/core/utils/ai_chat_write_diff.dart';
 import 'package:katan/core/utils/parse_task_draft.dart';
 import 'package:katan/domain/entities/ai_chat.dart';
 import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
@@ -501,6 +504,34 @@ class _AiChatViewState extends State<_AiChatView> {
             ),
             body: Column(
               children: [
+                if (status.mcpAvailable || status.webSearchAvailable || status.integrationsAvailable)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        if (status.webSearchAvailable)
+                          const Chip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text('Web search'),
+                            avatar: Icon(Icons.travel_explore, size: 16),
+                          ),
+                        if (status.mcpAvailable)
+                          const Chip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text('MCP'),
+                            avatar: Icon(Icons.extension, size: 16),
+                          ),
+                        if (status.integrationsAvailable)
+                          const Chip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text('Интеграции'),
+                            avatar: Icon(Icons.hub_outlined, size: 16),
+                          ),
+                      ],
+                    ),
+                  ),
                 if (sessions.isEmpty)
                   const Expanded(
                     child: EmptyState(
@@ -578,6 +609,15 @@ class _AiChatViewState extends State<_AiChatView> {
                           },
                         );
                       },
+                    ),
+                  ),
+                if (shouldShowWriteConfirmBar(messages: messages, streaming: streaming))
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+                    child: _WriteConfirmBar(
+                      enabled: !streaming && !uploadingAttachment,
+                      onApply: () => context.read<AiChatCubit>().sendMessage(writeConfirmApplyPrompt),
+                      onDryRun: () => context.read<AiChatCubit>().sendMessage(writeConfirmDryRunPrompt),
                     ),
                   ),
                 if (pendingAttachments.isNotEmpty || uploadingAttachment)
@@ -968,20 +1008,14 @@ class _MessageBubble extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (message.toolSteps.isNotEmpty) ...[
-                  ...message.toolSteps.map(
-                    (step) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        '${step.displayName}${step.status.isNotEmpty ? ' (${step.status})' : ''}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
+                if (message.toolSteps.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _ToolStepsPanel(
+                      steps: message.toolSteps,
+                      streaming: message.isStreaming,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                ],
                 if (message.reasoning.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
@@ -992,13 +1026,17 @@ class _MessageBubble extends StatelessWidget {
                     Text(message.content, style: TextStyle(color: fg))
                   else
                     const SizedBox.shrink()
-                else
-                  MarkdownBody(
-                    data: message.content.isEmpty && message.isStreaming ? '...' : message.content,
-                    styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-                      p: theme.textTheme.bodyMedium?.copyWith(color: fg),
+                else ...[
+                  if (message.content.isNotEmpty || message.isStreaming)
+                    MarkdownBody(
+                      data: message.content.isEmpty && message.isStreaming ? '...' : message.content,
+                      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                        p: theme.textTheme.bodyMedium?.copyWith(color: fg),
+                      ),
                     ),
-                  ),
+                  if (!message.isStreaming && message.content.isNotEmpty)
+                    _WriteDiffCard(content: message.content),
+                ],
                 if (message.isStreaming) ...[
                   const SizedBox(height: 8),
                   const SizedBox(
@@ -1109,33 +1147,315 @@ class _ReasoningBlockState extends State<_ReasoningBlock> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _expanded = !_expanded),
-          borderRadius: BorderRadius.circular(6),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Icon(
-                  _expanded ? Icons.expand_less : Icons.expand_more,
-                  size: 18,
-                  color: theme.colorScheme.outline,
-                ),
-                const SizedBox(width: 4),
-                Text('Рассуждение', style: theme.textTheme.labelMedium),
+    return Material(
+      color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: () => setState(() => _expanded = !_expanded),
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                    color: theme.colorScheme.outline,
+                  ),
+                  const SizedBox(width: 4),
+                  Text('Рассуждение', style: theme.textTheme.labelMedium),
+                  const Spacer(),
+                  Text(
+                    '${widget.reasoning.trim().length} симв.',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+              if (_expanded) ...[
+                const SizedBox(height: 6),
+                Text(widget.reasoning, style: theme.textTheme.bodySmall),
               ],
-            ),
+            ],
           ),
         ),
-        if (_expanded)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(widget.reasoning, style: theme.textTheme.bodySmall),
+      ),
+    );
+  }
+}
+
+class _ToolStepsPanel extends StatelessWidget {
+  const _ToolStepsPanel({
+    required this.steps,
+    required this.streaming,
+  });
+
+  final List<AiChatToolStep> steps;
+  final bool streaming;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final visible = steps.where((step) => step.displayName.trim().isNotEmpty)
+        .where((step) => !isAiChatPrepToolStepName(step.displayName))
+        .toList();
+    if (visible.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final activeCount = visible.where((step) {
+      final status = normalizeAiChatToolStepStatus(step.status);
+      return status == AiChatToolStepStatus.running || (streaming && step.status.trim().isEmpty);
+    }).length;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        color: theme.colorScheme.surface.withValues(alpha: 0.55),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (activeCount > 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
+              child: Text(
+                'Выполняется $activeCount ${pluralAiChatTools(activeCount)}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ...visible.map((step) {
+            final status = normalizeAiChatToolStepStatus(
+              step.status.isEmpty && streaming ? 'running' : step.status,
+            );
+            final category = normalizeAiChatToolCategory(step.category);
+            final statusColor = switch (status) {
+              AiChatToolStepStatus.running => Colors.amber.shade700,
+              AiChatToolStepStatus.ok => Colors.green.shade700,
+              AiChatToolStepStatus.error => theme.colorScheme.error,
+            };
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _categoryDotColor(category, theme),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          aiChatToolCategoryLabel(category).toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            letterSpacing: 0.4,
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                        Text(
+                          aiChatToolStepShortTitle(step.displayName),
+                          style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        aiChatToolStatusLabel(status),
+                        style: theme.textTheme.labelSmall?.copyWith(color: statusColor),
+                      ),
+                      const SizedBox(width: 4),
+                      if (status == AiChatToolStepStatus.running)
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: statusColor,
+                          ),
+                        )
+                      else
+                        Icon(
+                          status == AiChatToolStepStatus.error ? Icons.cancel_outlined : Icons.check_circle_outline,
+                          size: 14,
+                          color: statusColor,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+
+  Color _categoryDotColor(AiChatToolCategory category, ThemeData theme) {
+    return switch (category) {
+      AiChatToolCategory.katan => theme.colorScheme.primary,
+      AiChatToolCategory.billing => const Color(0xFF0284C7),
+      AiChatToolCategory.bitrix => Colors.amber.shade700,
+      AiChatToolCategory.glaber => Colors.deepPurple.shade400,
+      AiChatToolCategory.mcp => const Color(0xFF0D9488),
+      AiChatToolCategory.builtin || AiChatToolCategory.unknown =>
+        theme.colorScheme.outline,
+    };
+  }
+}
+
+class _WriteConfirmBar extends StatelessWidget {
+  const _WriteConfirmBar({
+    required this.enabled,
+    required this.onApply,
+    required this.onDryRun,
+  });
+
+  final bool enabled;
+  final VoidCallback onApply;
+  final VoidCallback onDryRun;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.amber.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Preview готов. Подтвердите запись в Katan или сначала проверьте dry-run.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.amber.shade900,
+            ),
           ),
-      ],
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton(
+                onPressed: enabled ? onApply : null,
+                child: const Text('Да, применить'),
+              ),
+              OutlinedButton(
+                onPressed: enabled ? onDryRun : null,
+                child: const Text('Сначала пробный запуск'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WriteDiffCard extends StatelessWidget {
+  const _WriteDiffCard({required this.content});
+
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    final tables = extractWriteDiffTables(content);
+    if (tables.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        children: tables.map((table) {
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          table.title.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            letterSpacing: 0.4,
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ),
+                      if (table.dryRun)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'dry-run',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowHeight: 32,
+                    dataRowMinHeight: 28,
+                    dataRowMaxHeight: 44,
+                    columnSpacing: 16,
+                    horizontalMargin: 10,
+                    columns: table.columns.map((col) => DataColumn(
+                        label: Text(col, style: theme.textTheme.labelSmall),
+                    )).toList(),
+                    rows: table.rows.map((row) => DataRow(
+                      cells: table.columns.map((col) => DataCell(Text(row[col] ?? '-', style: theme.textTheme.bodySmall))).toList(),
+                    )).toList(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

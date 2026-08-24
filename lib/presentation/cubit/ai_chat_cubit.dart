@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/core/error/failures.dart';
+import 'package:katan/core/utils/ai_chat_assistant_sanitize.dart';
+import 'package:katan/core/utils/ai_chat_attachments.dart';
+import 'package:katan/core/utils/ai_chat_strip_tool_action.dart';
+import 'package:katan/core/utils/ai_chat_tool_steps_ui.dart';
 import 'package:katan/domain/entities/ai_chat.dart';
 import 'package:katan/domain/repositories/ai_chat_repository.dart';
 import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
@@ -18,7 +22,6 @@ import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/list_ai_chat_assistant_regenerations_usecase.dart';
 import 'package:katan/domain/usecases/put_ai_chat_session_file_usecase.dart';
 import 'package:katan/domain/usecases/regenerate_ai_chat_assistant_usecase.dart';
-import 'package:katan/core/utils/ai_chat_attachments.dart';
 import 'package:katan/domain/usecases/send_ai_chat_message_usecase.dart';
 import 'package:katan/domain/usecases/update_ai_chat_session_system_prompt_usecase.dart';
 import 'package:katan/domain/usecases/update_ai_chat_session_title_usecase.dart';
@@ -204,6 +207,8 @@ class AiChatCubit extends Cubit<AiChatState> {
   AiChatStreamHandle? _streamHandle;
   StreamSubscription<AiChatChunk>? _streamSub;
   int _streamingMessageId = -1;
+  String _streamRaw = '';
+  String _streamReasoning = '';
   static const _draftMessageId = -1;
 
   Future<void> bootstrap() async {
@@ -934,43 +939,23 @@ class AiChatCubit extends Cubit<AiChatState> {
 
     var assistant = messages[index];
 
-    switch (chunk.kind) {
-      case AiChatChunkKind.text:
-        if (chunk.content.isNotEmpty) {
-          assistant = assistant.copyWith(content: '${assistant.content}${chunk.content}');
-        }
-      case AiChatChunkKind.reasoning:
-        if (chunk.reasoning.isNotEmpty) {
-          assistant = assistant.copyWith(reasoning: '${assistant.reasoning}${chunk.reasoning}');
-        } else if (chunk.content.isNotEmpty) {
-          assistant = assistant.copyWith(reasoning: '${assistant.reasoning}${chunk.content}');
-        }
-      case AiChatChunkKind.notice:
-        break;
-      case AiChatChunkKind.toolStatus:
-        if (chunk.toolDisplayName != null) {
-          final steps = [
-            ...assistant.toolSteps,
-            AiChatToolStep(
-              displayName: chunk.toolDisplayName!,
-              status: chunk.toolStatus ?? '',
-              category: '',
-            ),
-          ];
-          assistant = assistant.copyWith(toolSteps: steps);
-        }
-    }
-
-    if (chunk.assistantFinalText != null) {
-      assistant = assistant.copyWith(
-        content: chunk.assistantFinalText!,
-        reasoning: chunk.assistantFinalReasoning ?? assistant.reasoning,
-        toolSteps: chunk.assistantFinalToolSteps.isNotEmpty ? chunk.assistantFinalToolSteps : assistant.toolSteps,
-      );
-    }
-
     if (chunk.done) {
+      if (chunk.assistantFinalText != null) {
+        _streamRaw = chunk.assistantFinalText!;
+        if (chunk.assistantFinalReasoning != null) {
+          _streamReasoning = chunk.assistantFinalReasoning!;
+        }
+        assistant = _syncAssistantFromStreamRaw(assistant);
+      }
+
+      if (chunk.assistantFinalToolSteps.isNotEmpty) {
+        assistant = assistant.copyWith(toolSteps: chunk.assistantFinalToolSteps);
+      } else {
+        assistant = assistant.copyWith(toolSteps: _finalizeRunningToolSteps(assistant.toolSteps));
+      }
       assistant = assistant.copyWith(isStreaming: false, continueOffered: false);
+      _streamRaw = '';
+      _streamReasoning = '';
       messages[index] = assistant;
       emit(current.copyWith(
         sessions: sessions,
@@ -981,8 +966,153 @@ class AiChatCubit extends Cubit<AiChatState> {
       return;
     }
 
+    final kind = _resolveChunkKind(chunk);
+    switch (kind) {
+      case AiChatChunkKind.text:
+        if (chunk.content.isNotEmpty) {
+          _streamRaw += chunk.content;
+          assistant = _syncAssistantFromStreamRaw(assistant);
+        }
+
+        final reasoningDelta = _reasoningFromChunk(chunk);
+        if (reasoningDelta.isNotEmpty && chunk.content.isEmpty) {
+          _streamReasoning += reasoningDelta;
+          assistant = _syncAssistantFromStreamRaw(assistant);
+        }
+      case AiChatChunkKind.reasoning:
+        final reasoningDelta = _reasoningFromChunk(chunk);
+        if (reasoningDelta.isNotEmpty) {
+          _streamReasoning += reasoningDelta;
+        }
+
+        assistant = _syncAssistantFromStreamRaw(assistant);
+      case AiChatChunkKind.notice:
+        break;
+      case AiChatChunkKind.toolStatus:
+        final step = _toolStepFromChunk(chunk);
+        if (step != null) {
+          assistant = assistant.copyWith(toolSteps: _upsertToolStep(assistant.toolSteps, step));
+
+          if (_streamRaw.trim().isNotEmpty) {
+            _streamRaw = peelStreamAssistantContent(_streamRaw).visible;
+          } else {
+            _streamRaw = '';
+          }
+
+          assistant = _syncAssistantFromStreamRaw(assistant);
+        }
+    }
+
     messages[index] = assistant;
     emit(current.copyWith(sessions: sessions, messages: messages));
+  }
+
+  AiChatChunkKind _resolveChunkKind(AiChatChunk chunk) {
+    if (chunk.kind == AiChatChunkKind.toolStatus || chunk.kind == AiChatChunkKind.notice || chunk.kind == AiChatChunkKind.reasoning) {
+      return chunk.kind;
+    }
+
+    final displayName = (
+      chunk.toolDisplayName ??
+      chunk.toolName ??
+      _parseLegacyToolStatusContent(chunk.content)
+    ).trim();
+    final status = chunk.toolStatus?.trim() ?? '';
+    if (displayName.isNotEmpty && (status.isNotEmpty || chunk.content.trim().isEmpty || RegExp(r'^выполняется:', caseSensitive: false).hasMatch(chunk.content))) {
+      return AiChatChunkKind.toolStatus;
+    }
+
+    return chunk.kind;
+  }
+
+  String _reasoningFromChunk(AiChatChunk chunk) {
+    final r = chunk.reasoning.trim();
+    if (r.isNotEmpty) {
+      return chunk.reasoning;
+    }
+
+    if (chunk.kind == AiChatChunkKind.reasoning && chunk.content.isNotEmpty) {
+      return chunk.content;
+    }
+
+    return '';
+  }
+
+  String _parseLegacyToolStatusContent(String content) {
+    final match = RegExp(r'^выполняется:\s*(.+)$', caseSensitive: false).firstMatch(content.trim());
+    return match?.group(1)?.trim() ?? '';
+  }
+
+  AiChatToolStep? _toolStepFromChunk(AiChatChunk chunk) {
+    final displayName = (
+      chunk.toolDisplayName ??
+      chunk.toolName ??
+      _parseLegacyToolStatusContent(chunk.content)
+    ).trim();
+    if (displayName.isEmpty || isAiChatPrepToolStepName(displayName)) {
+      return null;
+    }
+
+    return AiChatToolStep(
+      displayName: displayName,
+      status: normalizeAiChatToolStepStatus(chunk.toolStatus ?? 'running').name,
+      category: normalizeAiChatToolCategory(chunk.toolCategory).name,
+    );
+  }
+
+  List<AiChatToolStep> _upsertToolStep(List<AiChatToolStep> steps, AiChatToolStep step) {
+    final matchIdx = steps.indexWhere((existing) => existing.displayName == step.displayName,);
+    if (matchIdx >= 0) {
+      final next = [...steps];
+      next[matchIdx] = step;
+      return next;
+    }
+
+    return [...steps, step];
+  }
+
+  List<AiChatToolStep> _finalizeRunningToolSteps(List<AiChatToolStep> steps) {
+    return steps.map((step) => normalizeAiChatToolStepStatus(step.status) == AiChatToolStepStatus.running
+      ? AiChatToolStep(
+          displayName: step.displayName,
+          status: AiChatToolStepStatus.ok.name,
+          category: step.category,
+        )
+      : step,
+    ).toList();
+  }
+
+  AiChatMessage _syncAssistantFromStreamRaw(AiChatMessage assistant) {
+    final peeled = peelStreamAssistantContent(_streamRaw);
+    final content = sanitizeAssistantResponseForUser(peeled.visible);
+    final reasoning = combineAiChatReasoning(_streamReasoning, peeled.thinking);
+    return assistant.copyWith(
+      content: content,
+      reasoning: reasoning,
+    );
+  }
+
+  Future<void> _listenToStream(Future<AiChatStreamHandle> Function() start) async {
+    _streamRaw = '';
+    _streamReasoning = '';
+    try {
+      final handle = await start();
+      _streamHandle = handle;
+      await _streamSub?.cancel();
+      _streamSub = handle.chunks.listen(
+        _onChunk,
+        onError: _onStreamError,
+        onDone: _onStreamDone,
+        cancelOnError: true,
+      );
+    } on AuthFailure catch (e) {
+      emit(AiChatFailure(e.message));
+      await _authCubit.logout();
+    } on Failure catch (e) {
+      _finishStreamWithError(e.message);
+    } catch (e) {
+      _finishStreamWithError(e.toString());
+    }
   }
 
   Future<void> _reloadAfterStream(int sessionId) async {
@@ -1006,9 +1136,7 @@ class AiChatCubit extends Cubit<AiChatState> {
           streaming: false,
         ));
       }
-    } catch (_) {
-
-    }
+    } catch (_) {}
   }
 
   void _onStreamError(Object error) {
@@ -1040,26 +1168,6 @@ class AiChatCubit extends Cubit<AiChatState> {
         streaming: false,
         actionError: message,
       ));
-    }
-  }
-
-  Future<void> _listenToStream(Future<AiChatStreamHandle> Function() start) async {
-    try {
-      final handle = await start();
-      _streamHandle = handle;
-      _streamSub = handle.chunks.listen(
-        _onChunk,
-        onError: _onStreamError,
-        onDone: _onStreamDone,
-        cancelOnError: true,
-      );
-    } on AuthFailure catch (e) {
-      emit(AiChatFailure(e.message));
-      await _authCubit.logout();
-    } on Failure catch (e) {
-      _finishStreamWithError(e.message);
-    } catch (e) {
-      _finishStreamWithError(e.toString());
     }
   }
 

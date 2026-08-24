@@ -1,4 +1,7 @@
 import 'package:fixnum/fixnum.dart';
+import 'package:katan/core/utils/ai_chat_assistant_sanitize.dart';
+import 'package:katan/core/utils/ai_chat_strip_tool_action.dart';
+import 'package:katan/core/utils/ai_chat_tool_steps_ui.dart';
 import 'package:katan/domain/entities/ai_chat.dart';
 import 'package:katan/generated/pb/ai_chat.pb.dart' as pb;
 import 'package:katan/generated/pb/ai_chat.pbenum.dart' as pb_enum;
@@ -78,6 +81,9 @@ AiChatStatus mapAiChatStatus(pb.AiChatStatusResponse response) {
     attachmentsAvailable: response.attachmentsAvailable,
     hideAskAiButton: response.hideAskAiButton,
     imageUploadAvailable: response.imageUploadAvailable,
+    mcpAvailable: response.mcpAvailable,
+    webSearchAvailable: response.webSearchAvailable,
+    integrationsAvailable: response.integrationsAvailable,
     sessionTemplates: response.sessionTemplates.map(mapAiChatSessionTemplate).toList(),
     quickPrompts: response.customQuickPrompts.map(mapAiChatQuickPrompt).toList(),
     proactiveChips: response.proactiveChips.map(mapAiChatProactiveChip).toList(),
@@ -95,13 +101,24 @@ AiChatSession mapAiChatSession(pb.AiChatSession item) {
 }
 
 AiChatMessage mapAiChatMessage(pb.AiChatMessage item) {
+  final peeled = peelStreamAssistantContent(item.content);
+  final content = sanitizeAssistantResponseForUser(peeled.visible);
+  final reasoning = combineAiChatReasoning(item.reasoning, peeled.thinking);
+
   return AiChatMessage(
     id: item.id.toInt(),
     role: item.role,
-    content: item.content,
-    reasoning: item.reasoning,
+    content: content,
+    reasoning: reasoning,
     createdAt: _mapUnix(item.createdAt),
-    toolSteps: item.toolSteps.map(mapAiChatToolStep).toList(),
+    toolSteps: item.toolSteps.map(mapAiChatToolStep)
+        .where((step) => !isAiChatPrepToolStepName(step.displayName))
+        .map((step) => AiChatToolStep(
+          displayName: step.displayName,
+          status: normalizeAiChatToolStepStatus(step.status).name,
+          category: normalizeAiChatToolCategory(step.category).name,
+        ))
+        .toList(),
     attachmentFileId: item.attachmentFileId == Int64.ZERO ? null : item.attachmentFileId.toInt(),
     attachmentName: item.attachmentName.isEmpty ? null : item.attachmentName,
   );
@@ -125,9 +142,21 @@ AiChatChunk mapAiChatChunk(pb.AiChatChunk chunk) {
     sessionTitle: chunk.sessionTitle,
     kind: mapAiChatChunkKind(chunk.kind),
     toolDisplayName: chunk.toolDisplayName.isEmpty ? null : chunk.toolDisplayName,
+    toolName: chunk.toolName.isEmpty ? null : chunk.toolName,
     toolStatus: chunk.toolStatus.isEmpty ? null : chunk.toolStatus,
+    toolCategory: chunk.toolCategory.isEmpty ? null : chunk.toolCategory,
     assistantFinalText: chunk.hasAssistantFinal() ? chunk.assistantFinal.text : null,
     assistantFinalReasoning: chunk.hasAssistantFinal() ? chunk.assistantFinal.reasoning : null,
-    assistantFinalToolSteps: chunk.hasAssistantFinal() ? chunk.assistantFinal.toolSteps.map(mapAiChatToolStep).toList() : const [],
+    assistantFinalToolSteps: chunk.hasAssistantFinal()
+        ? chunk.assistantFinal.toolSteps
+            .map(mapAiChatToolStep)
+            .where((step) => !isAiChatPrepToolStepName(step.displayName))
+            .map((step) => AiChatToolStep(
+              displayName: step.displayName,
+              status: normalizeAiChatToolStepStatus(step.status).name,
+              category: normalizeAiChatToolCategory(step.category).name,
+            ))
+            .toList()
+        : const [],
   );
 }
