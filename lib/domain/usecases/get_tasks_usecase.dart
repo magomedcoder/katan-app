@@ -12,10 +12,12 @@ class GetTasksUseCase {
     int limit = 20,
     String query = '',
     int? projectId,
+    String status = '',
   }) => _repository.getTasks(
     page: page,
     limit: limit,
     query: query,
     projectId: projectId,
+    status: status,
   );
 }

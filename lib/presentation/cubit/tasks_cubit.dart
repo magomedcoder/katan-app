@@ -25,18 +25,20 @@ class TasksLoaded extends TasksState {
     required this.items,
     required this.total,
     required this.query,
+    required this.status,
     required this.loadingMore,
   });
 
   final List<TaskSummary> items;
   final int total;
   final String query;
+  final String status;
   final bool loadingMore;
 
   bool get hasMore => items.length < total;
 
   @override
-  List<Object?> get props => [items, total, query, loadingMore];
+  List<Object?> get props => [items, total, query, status, loadingMore];
 }
 
 class TasksFailure extends TasksState {
@@ -65,11 +67,15 @@ class TasksCubit extends Cubit<TasksState> {
 
   int _page = 1;
   String _query = '';
+  String _status = '';
 
-  Future<void> load({String? query}) async {
+  Future<void> load({String? query, String? status}) async {
     _page = 1;
     if (query != null) {
       _query = query;
+    }
+    if (status != null) {
+      _status = status;
     }
 
     emit(const TasksLoading());
@@ -80,12 +86,14 @@ class TasksCubit extends Cubit<TasksState> {
         limit: _pageSize,
         query: _query,
         projectId: projectId,
+        status: _status,
       );
 
       emit(TasksLoaded(
         items: result.items,
         total: result.total,
         query: _query,
+        status: _status,
         loadingMore: false,
       ));
     } on AuthFailure catch (e) {
@@ -108,6 +116,7 @@ class TasksCubit extends Cubit<TasksState> {
       items: current.items,
       total: current.total,
       query: current.query,
+      status: current.status,
       loadingMore: true,
     ));
 
@@ -118,12 +127,14 @@ class TasksCubit extends Cubit<TasksState> {
         limit: _pageSize,
         query: _query,
         projectId: projectId,
+        status: _status,
       );
       _page = nextPage;
       emit(TasksLoaded(
         items: [...current.items, ...result.items],
         total: result.total,
         query: _query,
+        status: _status,
         loadingMore: false,
       ));
     } on AuthFailure catch (e) {
@@ -134,6 +145,7 @@ class TasksCubit extends Cubit<TasksState> {
         items: current.items,
         total: current.total,
         query: current.query,
+        status: current.status,
         loadingMore: false,
       ));
       emit(TasksFailure(e.message));
@@ -143,4 +155,6 @@ class TasksCubit extends Cubit<TasksState> {
   }
 
   Future<void> search(String query) => load(query: query.trim());
+
+  Future<void> setStatus(String status) => load(status: status);
 }

@@ -8,6 +8,7 @@ abstract class TaskRepository {
     required int limit,
     String query = '',
     int? projectId,
+    String status = '',
   });
 
   Future<TaskDetail> getTask(int id);

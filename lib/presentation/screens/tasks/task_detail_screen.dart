@@ -17,6 +17,7 @@ import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/task_detail_cubit.dart';
 import 'package:katan/core/utils/formatters.dart';
+import 'package:katan/core/utils/task_status.dart';
 import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -293,13 +294,30 @@ class _TaskMetaSection extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            Chip(label: Text(statusLabel(task.status))),
-            if (task.columnTitle.isNotEmpty)
-              Chip(label: Text(task.columnTitle)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: taskStatusBackground(task.status),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                taskStatusLabel(task.status, columnTitle: task.columnTitle),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: taskStatusForeground(task.status),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (task.columnTitle.isNotEmpty && task.status.isNotEmpty)
+              Chip(
+                label: Text(task.columnTitle),
+                visualDensity: VisualDensity.compact,
+              ),
             if (task.isOverdue)
               Chip(
                 label: const Text('Просрочена'),
                 backgroundColor: theme.colorScheme.errorContainer,
+                visualDensity: VisualDensity.compact,
               ),
           ],
         ),
@@ -416,8 +434,8 @@ class _FilesSection extends StatelessWidget {
               subtitle: Text(
                 [
                   if (file.user != null) file.user!.displayName,
-                  formatDateTime(file.createdAt),
-                ].toString(),
+                  if (file.createdAt != null) formatDateTime(file.createdAt),
+                ].where((s) => s.isNotEmpty).join(' · '),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -471,8 +489,8 @@ class _CommentsSection extends StatelessWidget {
                   Text(
                     [
                       comment.author?.displayName ?? 'Пользователь',
-                      formatDateTime(comment.createdAt),
-                    ].toString(),
+                      if (comment.createdAt != null) formatDateTime(comment.createdAt),
+                    ].where((s) => s.isNotEmpty).join(' · '),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.outline,
                     ),

@@ -21,6 +21,7 @@ class TaskRemoteDataSource {
     required int limit,
     String query = '',
     int? projectId,
+    String status = '',
   }) async {
     try {
       final client = await _client();
@@ -32,6 +33,7 @@ class TaskRemoteDataSource {
           ),
           query: query,
           projectId: projectId != null ? Int64(projectId) : Int64.ZERO,
+          status: status,
         ),
         options: await _authOptions(),
       );

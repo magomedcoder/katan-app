@@ -8,9 +8,13 @@ class TaskSummary extends Equatable {
     required this.status,
     required this.projectId,
     required this.projectTitle,
+    required this.columnTitle,
     required this.assignee,
     required this.dueAt,
     required this.isOverdue,
+    required this.isPaused,
+    required this.subtaskCount,
+    required this.subtaskCompletedCount,
   });
 
   final int id;
@@ -18,9 +22,13 @@ class TaskSummary extends Equatable {
   final String status;
   final int projectId;
   final String projectTitle;
+  final String columnTitle;
   final UserRef? assignee;
   final DateTime? dueAt;
   final bool isOverdue;
+  final bool isPaused;
+  final int subtaskCount;
+  final int subtaskCompletedCount;
 
   @override
   List<Object?> get props => [
@@ -29,9 +37,13 @@ class TaskSummary extends Equatable {
     status,
     projectId,
     projectTitle,
+    columnTitle,
     assignee,
     dueAt,
     isOverdue,
+    isPaused,
+    subtaskCount,
+    subtaskCompletedCount,
   ];
 }
 

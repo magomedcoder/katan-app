@@ -6,16 +6,19 @@ class ProjectTasksScreen extends StatelessWidget {
     super.key,
     required this.projectId,
     required this.projectTitle,
+    this.canWriteTask = true,
   });
 
   final int projectId;
   final String projectTitle;
+  final bool canWriteTask;
 
   @override
   Widget build(BuildContext context) {
     return TasksScreen(
       projectId: projectId,
       projectTitle: projectTitle.isEmpty ? 'Проект' : projectTitle,
+      canWriteTask: canWriteTask,
     );
   }
 }

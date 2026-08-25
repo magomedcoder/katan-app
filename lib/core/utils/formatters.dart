@@ -27,9 +27,12 @@ String formatChatTime(DateTime? value) {
 
 String statusLabel(String status) {
   return switch (status) {
-    'open' || 'todo' => 'Открыта',
+    'new' => 'Новая',
     'in_progress' || 'progress' => 'В работе',
-    'done' || 'closed' || 'completed' => 'Завершена',
+    'complete' || 'done' || 'closed' || 'completed' => 'Завершена',
+    'postpone' => 'Отложена',
+    'no_project' => 'Без проекта',
+    'open' || 'todo' => 'Открыта',
     'paused' => 'Пауза',
     '' => 'Без статуса',
     _ => status,

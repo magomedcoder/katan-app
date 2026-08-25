@@ -38,9 +38,13 @@ TaskSummary mapTaskSummary(task_pb.TaskItem item) {
     status: item.status,
     projectId: item.projectId.toInt(),
     projectTitle: item.projectTitle,
+    columnTitle: item.columnTitle,
     assignee: item.hasAssignee() ? mapUser(item.assignee) : null,
     dueAt: mapUnix(item.dueAt),
     isOverdue: item.isOverdue,
+    isPaused: item.isPaused,
+    subtaskCount: item.subtaskCount,
+    subtaskCompletedCount: item.subtaskCompletedCount,
   );
 }
 

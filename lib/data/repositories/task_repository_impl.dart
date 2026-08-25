@@ -15,11 +15,13 @@ class TaskRepositoryImpl implements TaskRepository {
     required int limit,
     String query = '',
     int? projectId,
+    String status = '',
   }) => _remote.getTasks(
     page: page,
     limit: limit,
     query: query,
     projectId: projectId,
+    status: status,
   );
 
   @override

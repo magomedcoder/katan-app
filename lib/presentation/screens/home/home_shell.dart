@@ -19,8 +19,7 @@ import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
 import 'package:katan/presentation/screens/chat/chat_rooms_screen.dart';
 import 'package:katan/presentation/screens/notifications/notifications_screen.dart';
 import 'package:katan/presentation/screens/profile/profile_screen.dart';
-import 'package:katan/presentation/screens/projects/projects_screen.dart';
-import 'package:katan/presentation/screens/tasks/tasks_screen.dart';
+import 'package:katan/presentation/screens/work/work_screen.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 
 class HomeShell extends StatelessWidget {
@@ -135,17 +134,11 @@ class _HomeTabsState extends State<_HomeTabs> {
 
   List<_HomeTab> get _tabs {
     return [
-      const _HomeTab(
+      _HomeTab(
         label: 'Задачи',
         icon: Icons.task_alt_outlined,
         selectedIcon: Icons.task_alt,
-        child: TasksScreen(),
-      ),
-      const _HomeTab(
-        label: 'Проекты',
-        icon: Icons.folder_outlined,
-        selectedIcon: Icons.folder,
-        child: ProjectsScreen(),
+        child: WorkScreen(canWriteTask: widget.account.canWriteTask),
       ),
       const _HomeTab(
         label: 'Уведомления',
