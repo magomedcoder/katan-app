@@ -435,7 +435,7 @@ class _FilesSection extends StatelessWidget {
                 [
                   if (file.user != null) file.user!.displayName,
                   if (file.createdAt != null) formatDateTime(file.createdAt),
-                ].where((s) => s.isNotEmpty).join(' · '),
+                ].where((s) => s.isNotEmpty).toString(),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -490,7 +490,7 @@ class _CommentsSection extends StatelessWidget {
                     [
                       comment.author?.displayName ?? 'Пользователь',
                       if (comment.createdAt != null) formatDateTime(comment.createdAt),
-                    ].where((s) => s.isNotEmpty).join(' · '),
+                    ].where((s) => s.isNotEmpty).toString(),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.outline,
                     ),

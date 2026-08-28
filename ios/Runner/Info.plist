@@ -45,5 +45,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Камера нужна для AR: показ сооружений, кабелей и абонентов на местности</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Геолокация нужна, чтобы показывать объекты Katan рядом с вами в AR</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Геолокация нужна, чтобы показывать объекты Katan рядом с вами в AR</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Датчики ориентации нужны для компаса и направления в AR</string>
 </dict>
 </plist>

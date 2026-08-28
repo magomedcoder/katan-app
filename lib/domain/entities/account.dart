@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:katan/domain/entities/ar_object.dart';
 
 class Account extends Equatable {
   const Account({
@@ -27,4 +28,25 @@ class Account extends Equatable {
   bool get canWriteTask => hasPermission('task|write');
 
   bool get canDeleteTask => hasPermission('task|delete') || hasPermission('-1');
+
+  Set<ArObjectKind> get arAllowedKinds {
+    final kinds = <ArObjectKind>{};
+    if (hasPermission('node|read') || hasPermission('node|write')) {
+      kinds.add(ArObjectKind.node);
+    }
+
+    if (hasPermission('device|read') || hasPermission('device|write')) {
+      kinds.add(ArObjectKind.device);
+    }
+
+    if (hasPermission('cable|read') || hasPermission('cable|write')) {
+      kinds.add(ArObjectKind.cable);
+    }
+
+    if (hasPermission('customer|read') || hasPermission('customer|write')) {
+      kinds.add(ArObjectKind.customer);
+    }
+
+    return kinds;
+  }
 }

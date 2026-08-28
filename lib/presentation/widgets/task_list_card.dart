@@ -98,7 +98,7 @@ class TaskListCard extends StatelessWidget {
               if (metaParts.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  metaParts.join(' · '),
+                  metaParts.toString(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: task.isOverdue
                       ? theme.colorScheme.error

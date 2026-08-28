@@ -16,6 +16,7 @@ import 'package:katan/presentation/cubit/chat_rooms_cubit.dart';
 import 'package:katan/presentation/cubit/home_cubit.dart';
 import 'package:katan/presentation/cubit/notifications_cubit.dart';
 import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
+import 'package:katan/presentation/screens/ar/ar_session_screen.dart';
 import 'package:katan/presentation/screens/chat/chat_rooms_screen.dart';
 import 'package:katan/presentation/screens/notifications/notifications_screen.dart';
 import 'package:katan/presentation/screens/profile/profile_screen.dart';
@@ -132,7 +133,7 @@ class _HomeTabs extends StatefulWidget {
 class _HomeTabsState extends State<_HomeTabs> {
   int _index = 0;
 
-  List<_HomeTab> get _tabs {
+  List<_HomeTab> _tabsFor({required bool arActive}) {
     return [
       _HomeTab(
         label: 'Задачи',
@@ -140,6 +141,17 @@ class _HomeTabsState extends State<_HomeTabs> {
         selectedIcon: Icons.task_alt,
         child: WorkScreen(canWriteTask: widget.account.canWriteTask),
       ),
+      if (widget.account.arAllowedKinds.isNotEmpty)
+        _HomeTab(
+          label: 'AR',
+          icon: Icons.view_in_ar_outlined,
+          selectedIcon: Icons.view_in_ar,
+          child: ArSessionScreen(
+            key: const ValueKey('ar-session'),
+            account: widget.account,
+            isActive: arActive,
+          ),
+        ),
       const _HomeTab(
         label: 'Уведомления',
         icon: Icons.notifications_outlined,
@@ -170,8 +182,10 @@ class _HomeTabsState extends State<_HomeTabs> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = _tabs;
-    final index = _index.clamp(0, tabs.length - 1);
+    final tabsPreview = _tabsFor(arActive: false);
+    final index = _index.clamp(0, tabsPreview.length - 1);
+    final arActive = tabsPreview[index].label == 'AR';
+    final tabs = _tabsFor(arActive: arActive);
 
     return Scaffold(
       body: IndexedStack(

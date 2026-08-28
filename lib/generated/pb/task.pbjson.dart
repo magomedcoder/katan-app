@@ -341,6 +341,8 @@ const GetTasksRequest$json = {
     {'1': 'project_id', '3': 3, '4': 1, '5': 3, '8': {}, '10': 'projectId'},
     {'1': 'status', '3': 4, '4': 1, '5': 9, '8': {}, '10': 'status'},
     {'1': 'parent_id', '3': 5, '4': 1, '5': 3, '8': {}, '10': 'parentId'},
+    {'1': 'object_type', '3': 6, '4': 1, '5': 5, '8': {}, '10': 'objectType'},
+    {'1': 'object_id', '3': 7, '4': 1, '5': 3, '8': {}, '10': 'objectId'},
   ],
 };
 
@@ -352,7 +354,10 @@ final $typed_data.Uint8List getTasksRequestDescriptor = $convert.base64Decode(
     'VjdF9pZBgDIAEoA0IgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVSCXByb2plY3RJ'
     'ZBI4CgZzdGF0dXMYBCABKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgZzdG'
     'F0dXMSPQoJcGFyZW50X2lkGAUgASgDQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQ'
-    'tVIIcGFyZW50SWQ=');
+    'tVIIcGFyZW50SWQSUAoLb2JqZWN0X3R5cGUYBiABKAVCL5JBLDIq0YLQuNC/INGB0LLRj9C30L'
+    'DQvdC90L7Qs9C+INC+0LHRitC10LrRgtCwUgpvYmplY3RUeXBlEmAKCW9iamVjdF9pZBgHIAEo'
+    'A0JDkkFAMj7QuNC00LXQvdGC0LjRhNC40LrQsNGC0L7RgCDRgdCy0Y/Qt9Cw0L3QvdC+0LPQvi'
+    'DQvtCx0YrQtdC60YLQsFIIb2JqZWN0SWQ=');
 
 @$core.Deprecated('Use getTasksResponseDescriptor instead')
 const GetTasksResponse$json = {

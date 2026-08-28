@@ -286,6 +286,59 @@ class ChatMessageFile extends $pb.GeneratedMessage {
   void clearId() => $_clearField(1);
 }
 
+class WikiFile extends $pb.GeneratedMessage {
+  factory WikiFile({
+    $fixnum.Int64? id,
+  }) {
+    final result = create();
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  WikiFile._();
+
+  factory WikiFile.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory WikiFile.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'WikiFile',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WikiFile clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  WikiFile copyWith(void Function(WikiFile) updates) =>
+      super.copyWith((message) => updates(message as WikiFile)) as WikiFile;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static WikiFile create() => WikiFile._();
+  @$core.override
+  WikiFile createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static WikiFile getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<WikiFile>(create);
+  static WikiFile? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get id => $_getI64(0);
+  @$pb.TagNumber(1)
+  set id($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearId() => $_clearField(1);
+}
+
 class File extends $pb.GeneratedMessage {
   factory File({
     $fixnum.Int64? id,
@@ -396,6 +449,7 @@ enum GetFilesRequest_ObjectType {
   task,
   taskComment,
   chatMessage,
+  wiki,
   notSet
 }
 
@@ -407,6 +461,7 @@ class GetFilesRequest extends $pb.GeneratedMessage {
     TaskFile? task,
     TaskCommentFile? taskComment,
     ChatMessageFile? chatMessage,
+    WikiFile? wiki,
   }) {
     final result = create();
     if (pagination != null) result.pagination = pagination;
@@ -415,6 +470,7 @@ class GetFilesRequest extends $pb.GeneratedMessage {
     if (task != null) result.task = task;
     if (taskComment != null) result.taskComment = taskComment;
     if (chatMessage != null) result.chatMessage = chatMessage;
+    if (wiki != null) result.wiki = wiki;
     return result;
   }
 
@@ -434,13 +490,14 @@ class GetFilesRequest extends $pb.GeneratedMessage {
     4: GetFilesRequest_ObjectType.task,
     5: GetFilesRequest_ObjectType.taskComment,
     6: GetFilesRequest_ObjectType.chatMessage,
+    7: GetFilesRequest_ObjectType.wiki,
     0: GetFilesRequest_ObjectType.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'GetFilesRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
       createEmptyInstance: create)
-    ..oo(0, [2, 3, 4, 5, 6])
+    ..oo(0, [2, 3, 4, 5, 6, 7])
     ..aOM<$1.Pagination>(1, _omitFieldNames ? '' : 'pagination',
         subBuilder: $1.Pagination.create)
     ..aOM<NodeFile>(2, _omitFieldNames ? '' : 'node',
@@ -453,6 +510,8 @@ class GetFilesRequest extends $pb.GeneratedMessage {
         subBuilder: TaskCommentFile.create)
     ..aOM<ChatMessageFile>(6, _omitFieldNames ? '' : 'chatMessage',
         subBuilder: ChatMessageFile.create)
+    ..aOM<WikiFile>(7, _omitFieldNames ? '' : 'wiki',
+        subBuilder: WikiFile.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -479,6 +538,7 @@ class GetFilesRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   GetFilesRequest_ObjectType whichObjectType() =>
       _GetFilesRequest_ObjectTypeByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(2)
@@ -486,6 +546,7 @@ class GetFilesRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   void clearObjectType() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -553,6 +614,17 @@ class GetFilesRequest extends $pb.GeneratedMessage {
   void clearChatMessage() => $_clearField(6);
   @$pb.TagNumber(6)
   ChatMessageFile ensureChatMessage() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  WikiFile get wiki => $_getN(6);
+  @$pb.TagNumber(7)
+  set wiki(WikiFile value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasWiki() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearWiki() => $_clearField(7);
+  @$pb.TagNumber(7)
+  WikiFile ensureWiki() => $_ensure(6);
 }
 
 class GetFilesResponse extends $pb.GeneratedMessage {
@@ -621,6 +693,7 @@ enum DeleteFileRequest_ObjectType {
   task,
   taskComment,
   chatMessage,
+  wiki,
   notSet
 }
 
@@ -631,6 +704,7 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
     TaskFile? task,
     TaskCommentFile? taskComment,
     ChatMessageFile? chatMessage,
+    WikiFile? wiki,
   }) {
     final result = create();
     if (node != null) result.node = node;
@@ -638,6 +712,7 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
     if (task != null) result.task = task;
     if (taskComment != null) result.taskComment = taskComment;
     if (chatMessage != null) result.chatMessage = chatMessage;
+    if (wiki != null) result.wiki = wiki;
     return result;
   }
 
@@ -657,13 +732,14 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
     3: DeleteFileRequest_ObjectType.task,
     4: DeleteFileRequest_ObjectType.taskComment,
     5: DeleteFileRequest_ObjectType.chatMessage,
+    6: DeleteFileRequest_ObjectType.wiki,
     0: DeleteFileRequest_ObjectType.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'DeleteFileRequest',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5])
+    ..oo(0, [1, 2, 3, 4, 5, 6])
     ..aOM<NodeFile>(1, _omitFieldNames ? '' : 'node',
         subBuilder: NodeFile.create)
     ..aOM<CableFile>(2, _omitFieldNames ? '' : 'cable',
@@ -674,6 +750,8 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
         subBuilder: TaskCommentFile.create)
     ..aOM<ChatMessageFile>(5, _omitFieldNames ? '' : 'chatMessage',
         subBuilder: ChatMessageFile.create)
+    ..aOM<WikiFile>(6, _omitFieldNames ? '' : 'wiki',
+        subBuilder: WikiFile.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -700,6 +778,7 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
   DeleteFileRequest_ObjectType whichObjectType() =>
       _DeleteFileRequest_ObjectTypeByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
@@ -707,6 +786,7 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
   void clearObjectType() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -763,6 +843,17 @@ class DeleteFileRequest extends $pb.GeneratedMessage {
   void clearChatMessage() => $_clearField(5);
   @$pb.TagNumber(5)
   ChatMessageFile ensureChatMessage() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  WikiFile get wiki => $_getN(5);
+  @$pb.TagNumber(6)
+  set wiki(WikiFile value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasWiki() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearWiki() => $_clearField(6);
+  @$pb.TagNumber(6)
+  WikiFile ensureWiki() => $_ensure(5);
 }
 
 class DeleteFileResponse extends $pb.GeneratedMessage {

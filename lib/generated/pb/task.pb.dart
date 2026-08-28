@@ -876,6 +876,8 @@ class GetTasksRequest extends $pb.GeneratedMessage {
     $fixnum.Int64? projectId,
     $core.String? status,
     $fixnum.Int64? parentId,
+    $core.int? objectType,
+    $fixnum.Int64? objectId,
   }) {
     final result = create();
     if (pagination != null) result.pagination = pagination;
@@ -883,6 +885,8 @@ class GetTasksRequest extends $pb.GeneratedMessage {
     if (projectId != null) result.projectId = projectId;
     if (status != null) result.status = status;
     if (parentId != null) result.parentId = parentId;
+    if (objectType != null) result.objectType = objectType;
+    if (objectId != null) result.objectId = objectId;
     return result;
   }
 
@@ -905,6 +909,8 @@ class GetTasksRequest extends $pb.GeneratedMessage {
     ..aInt64(3, _omitFieldNames ? '' : 'projectId')
     ..aOS(4, _omitFieldNames ? '' : 'status')
     ..aInt64(5, _omitFieldNames ? '' : 'parentId')
+    ..aI(6, _omitFieldNames ? '' : 'objectType')
+    ..aInt64(7, _omitFieldNames ? '' : 'objectId')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -972,6 +978,24 @@ class GetTasksRequest extends $pb.GeneratedMessage {
   $core.bool hasParentId() => $_has(4);
   @$pb.TagNumber(5)
   void clearParentId() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get objectType => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set objectType($core.int value) => $_setSignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasObjectType() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearObjectType() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $fixnum.Int64 get objectId => $_getI64(6);
+  @$pb.TagNumber(7)
+  set objectId($fixnum.Int64 value) => $_setInt64(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasObjectId() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearObjectId() => $_clearField(7);
 }
 
 class GetTasksResponse extends $pb.GeneratedMessage {

@@ -19,7 +19,7 @@ class ProjectListCard extends StatelessWidget {
     final meta = [
       '${project.tasksCount} задач',
       if (project.owner != null) project.owner!.displayName,
-    ].join(' · ');
+    ].toString();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),

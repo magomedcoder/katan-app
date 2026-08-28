@@ -80,6 +80,19 @@ final $typed_data.Uint8List chatMessageFileDescriptor = $convert.base64Decode(
     'Cg9DaGF0TWVzc2FnZUZpbGUSMAoCaWQYASABKANCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgd'
     'Cw0L3QuNC1UgJpZA==');
 
+@$core.Deprecated('Use wikiFileDescriptor instead')
+const WikiFile$json = {
+  '1': 'WikiFile',
+  '2': [
+    {'1': 'id', '3': 1, '4': 1, '5': 3, '8': {}, '10': 'id'},
+  ],
+};
+
+/// Descriptor for `WikiFile`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List wikiFileDescriptor = $convert.base64Decode(
+    'CghXaWtpRmlsZRIxCgJpZBgBIAEoA0IhkkEeMhxJRCDRgdGC0YDQsNC90LjRhtGLINCy0LjQut'
+    'C4UgJpZA==');
+
 @$core.Deprecated('Use fileDescriptor instead')
 const File$json = {
   '1': 'File',
@@ -172,6 +185,16 @@ const GetFilesRequest$json = {
       '9': 0,
       '10': 'chatMessage'
     },
+    {
+      '1': 'wiki',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.WikiFile',
+      '8': {},
+      '9': 0,
+      '10': 'wiki'
+    },
   ],
   '8': [
     {'1': 'object_type'},
@@ -189,7 +212,9 @@ final $typed_data.Uint8List getFilesRequestDescriptor = $convert.base64Decode(
     'Y29tbWVudBgFIAEoCzIWLmthdGFuLlRhc2tDb21tZW50RmlsZUIgkkEdMhvRgdC60L7RgNC+IN'
     'C+0L/QuNGB0LDQvdC40LVIAFILdGFza0NvbW1lbnQSXQoMY2hhdF9tZXNzYWdlGAYgASgLMhYu'
     'a2F0YW4uQ2hhdE1lc3NhZ2VGaWxlQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtU'
-    'gAUgtjaGF0TWVzc2FnZUINCgtvYmplY3RfdHlwZQ==');
+    'gAUgtjaGF0TWVzc2FnZRJQCgR3aWtpGAcgASgLMg8ua2F0YW4uV2lraUZpbGVCKZJBJjIk0KTQ'
+    'sNC50LvRiyDRgdGC0YDQsNC90LjRhtGLINCy0LjQutC4SABSBHdpa2lCDQoLb2JqZWN0X3R5cG'
+    'U=');
 
 @$core.Deprecated('Use getFilesResponseDescriptor instead')
 const GetFilesResponse$json = {
@@ -268,6 +293,16 @@ const DeleteFileRequest$json = {
       '9': 0,
       '10': 'chatMessage'
     },
+    {
+      '1': 'wiki',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.WikiFile',
+      '8': {},
+      '9': 0,
+      '10': 'wiki'
+    },
   ],
   '8': [
     {'1': 'object_type'},
@@ -283,8 +318,9 @@ final $typed_data.Uint8List deleteFileRequestDescriptor = $convert.base64Decode(
     'uNGB0LDQvdC40LVIAFIEdGFzaxJdCgx0YXNrX2NvbW1lbnQYBCABKAsyFi5rYXRhbi5UYXNrQ2'
     '9tbWVudEZpbGVCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1SABSC3Rhc2tDb21t'
     'ZW50El0KDGNoYXRfbWVzc2FnZRgFIAEoCzIWLmthdGFuLkNoYXRNZXNzYWdlRmlsZUIgkkEdMh'
-    'vRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVIAFILY2hhdE1lc3NhZ2VCDQoLb2JqZWN0X3R5'
-    'cGU=');
+    'vRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVIAFILY2hhdE1lc3NhZ2USTgoEd2lraRgGIAEo'
+    'CzIPLmthdGFuLldpa2lGaWxlQieSQSQyItCk0LDQudC7INGB0YLRgNCw0L3QuNGG0Ysg0LLQuN'
+    'C60LhIAFIEd2lraUINCgtvYmplY3RfdHlwZQ==');
 
 @$core.Deprecated('Use deleteFileResponseDescriptor instead')
 const DeleteFileResponse$json = {

@@ -12,10 +12,13 @@ import 'package:katan/data/repositories/file_repository_impl.dart';
 import 'package:katan/data/repositories/project_repository_impl.dart';
 import 'package:katan/data/repositories/task_repository_impl.dart';
 import 'package:katan/domain/repositories/account_repository.dart';
+import 'package:katan/domain/repositories/ar_objects_repository.dart';
 import 'package:katan/domain/repositories/auth_repository.dart';
 import 'package:katan/domain/repositories/file_repository.dart';
 import 'package:katan/domain/repositories/project_repository.dart';
 import 'package:katan/domain/repositories/task_repository.dart';
+import 'package:katan/data/data_sources/remote/map_remote_datasource.dart';
+import 'package:katan/data/repositories/ar_objects_repository_impl.dart';
 import 'package:katan/domain/usecases/add_task_comment_usecase.dart';
 import 'package:katan/domain/usecases/append_task_description_usecase.dart';
 import 'package:katan/domain/usecases/create_task_usecase.dart';
@@ -239,5 +242,12 @@ Future<void> configureDependencies() async {
     ))
     ..registerLazySingleton(() => GetChatUnreadCountsUseCase(
       getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton<MapRemoteDataSource>(() => MapRemoteDataSource(
+      getIt<GrpcClientFactory>(),
+      getIt<SessionStorage>(),
+    ))
+    ..registerLazySingleton<ArObjectsRepository>(() => ArObjectsRepositoryImpl(
+      getIt<MapRemoteDataSource>(),
     ));
 }
