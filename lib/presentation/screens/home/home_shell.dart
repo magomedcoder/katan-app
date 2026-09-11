@@ -5,18 +5,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
 import 'package:katan/data/realtime/account_realtime_service.dart';
 import 'package:katan/domain/entities/account.dart';
+import 'package:katan/domain/entities/chat.dart';
+import 'package:katan/domain/usecases/create_direct_chat_usecase.dart';
+import 'package:katan/domain/usecases/create_group_chat_usecase.dart';
 import 'package:katan/domain/usecases/get_account_usecase.dart';
 import 'package:katan/domain/usecases/get_chat_unread_counts_usecase.dart';
 import 'package:katan/domain/usecases/get_notifications_usecase.dart';
+import 'package:katan/domain/usecases/leave_chat_room_usecase.dart';
 import 'package:katan/domain/usecases/list_chat_rooms_usecase.dart';
 import 'package:katan/domain/usecases/mark_all_notifications_read_usecase.dart';
 import 'package:katan/domain/usecases/mark_notification_read_usecase.dart';
+import 'package:katan/domain/usecases/search_chat_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/chat_rooms_cubit.dart';
 import 'package:katan/presentation/cubit/home_cubit.dart';
 import 'package:katan/presentation/cubit/notifications_cubit.dart';
 import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
 import 'package:katan/presentation/screens/ar/ar_session_screen.dart';
+import 'package:katan/presentation/screens/chat/chat_room_screen.dart';
 import 'package:katan/presentation/screens/chat/chat_rooms_screen.dart';
 import 'package:katan/presentation/screens/notifications/notifications_screen.dart';
 import 'package:katan/presentation/screens/profile/profile_screen.dart';
@@ -68,6 +74,10 @@ class _HomeShellView extends StatelessWidget {
                   create: (context) => ChatRoomsCubit(
                     listRoomsUseCase: getIt<ListChatRoomsUseCase>(),
                     getUnreadCountsUseCase: getIt<GetChatUnreadCountsUseCase>(),
+                    searchChatUseCase: getIt<SearchChatUseCase>(),
+                    createDirectUseCase: getIt<CreateDirectChatUseCase>(),
+                    createGroupUseCase: getIt<CreateGroupChatUseCase>(),
+                    leaveRoomUseCase: getIt<LeaveChatRoomUseCase>(),
                     realtime: getIt<AccountRealtimeService>(),
                     authCubit: context.read<AuthCubit>(),
                   )..load(),
@@ -132,6 +142,65 @@ class _HomeTabs extends StatefulWidget {
 
 class _HomeTabsState extends State<_HomeTabs> {
   int _index = 0;
+  StreamSubscription<ChatEvent>? _chatBannerSub;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showChat) {
+      _chatBannerSub = getIt<AccountRealtimeService>().chatEvents.listen(_onChatBanner);
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_chatBannerSub?.cancel());
+    super.dispose();
+  }
+
+  void _onChatBanner(ChatEvent event) {
+    if (event.kind != ChatEventKind.message || event.message == null) {
+      return;
+    }
+
+    final message = event.message!;
+    final activeRoomId = getIt<AccountRealtimeService>().activeRoomId;
+    if (activeRoomId != null && activeRoomId == message.roomId) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    final author = message.author?.displayName.trim();
+    final body = message.body.trim().isEmpty ? 'Медиа' : message.body.trim();
+    final text = [
+      if (author != null && author.isNotEmpty) author,
+      body,
+    ].join(': ');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis),
+        action: SnackBarAction(
+          label: 'Открыть',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ChatRoomScreen(
+                  roomId: message.roomId,
+                  currentUsername: widget.account.username,
+                  canWrite: widget.account.canWriteChat,
+                  canManage: widget.account.canManageChat,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   List<_HomeTab> _tabsFor({required bool arActive}) {
     return [

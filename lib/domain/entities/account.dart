@@ -23,6 +23,8 @@ class Account extends Equatable {
 
   bool get canWriteChat => hasPermission('chat|write');
 
+  bool get canManageChat => hasPermission('chat|manage');
+
   bool get canReadTask => hasPermission('task|read') || hasPermission('task|write');
 
   bool get canWriteTask => hasPermission('task|write');

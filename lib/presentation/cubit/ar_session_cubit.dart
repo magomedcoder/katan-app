@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:katan/core/error/failures.dart';
 import 'package:katan/core/utils/geo.dart';
 import 'package:katan/domain/entities/ar_object.dart';
 import 'package:katan/domain/repositories/ar_objects_repository.dart';
@@ -153,6 +154,8 @@ class ArSessionCubit extends Cubit<ArSessionState> {
 
   double _radiusM = radiusPresetsM[1];
 
+  bool get _hasGeoCoords => _lat != 0 || _lng != 0;
+
   Future<void> start() async {
     emit(const ArSessionLoading());
     _enabled = {...allowedKinds};
@@ -183,11 +186,23 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     }
 
     try {
-      final pos = await Geolocator.getCurrentPosition(
+      var pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       );
+      if (pos.latitude == 0 && pos.longitude == 0) {
+        final last = await Geolocator.getLastKnownPosition();
+        if (last != null && (last.latitude != 0 || last.longitude != 0)) {
+          pos = last;
+        }
+      }
+      
+      if (pos.latitude == 0 && pos.longitude == 0) {
+        emit(const ArSessionFailure('GPS не определён - подождите или выйдите на открытое место'));
+        return;
+      }
+
       _lat = pos.latitude;
       _lng = pos.longitude;
       _accuracy = pos.accuracy;
@@ -215,6 +230,10 @@ class ArSessionCubit extends Cubit<ArSessionState> {
         distanceFilter: 3,
       ),
     ).listen((pos) {
+      if (pos.latitude == 0 && pos.longitude == 0) {
+        return;
+      }
+
       _lat = pos.latitude;
       _lng = pos.longitude;
       _accuracy = pos.accuracy;
@@ -297,8 +316,13 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       return;
     }
 
+    final prev = _radiusM;
     _radiusM = meters;
-    await _reloadObjects(force: true);
+    try {
+      await _reloadObjects(force: true);
+    } catch (_) {
+      _radiusM = prev;
+    }
     _emitReady();
   }
 
@@ -337,7 +361,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _indoorOriginLng = originLng ?? _lng;
     _hasIndoorOrigin = true;
     _selected = null;
-    await _reloadObjects(force: true);
+    await _reloadObjectsSafely();
     _emitReady();
   }
 
@@ -348,7 +372,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _indoorOriginLat = 0;
     _indoorOriginLng = 0;
     _hasIndoorOrigin = false;
-    await _reloadObjects(force: true);
+    await _reloadObjectsSafely();
     _emitReady();
   }
 
@@ -357,6 +381,10 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     int peerType = 0,
     int peerId = 0,
   }) async {
+    if (!_hasGeoCoords) {
+      throw const ServerFailure('Нет GPS - нельзя закрыть устройство');
+    }
+
     final covered = await _objectsRepository.setDeviceCover(
       deviceId: deviceId,
       params: ArCoverParams(
@@ -383,7 +411,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       _ensureIndoorOriginFromCover(covered);
     }
 
-    await _reloadObjects(force: true);
+    await _reloadObjectsSafely();
     _emitReady();
   }
 
@@ -414,7 +442,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
   Future<void> uncoverDevice(int deviceId) async {
     await _objectsRepository.clearDeviceCover(deviceId);
     _selected = null;
-    await _reloadObjects(force: true);
+    await _reloadObjectsSafely();
     _emitReady();
   }
 
@@ -423,39 +451,28 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       return null;
     }
 
-    final existing = _all.where((o) => o.ref == ref);
-    ArMapObject? obj = existing.isEmpty ? null : existing.first;
-    obj ??= await _objectsRepository.getByRef(ref);
-    if (obj == null) {
+    try {
+      final existing = _all.where((o) => o.ref == ref);
+      ArMapObject? obj = existing.isEmpty ? null : existing.first;
+      obj ??= await _objectsRepository.getByRef(ref);
+      if (obj == null) {
+        return null;
+      }
+
+      if (!_all.any((o) => o.ref == obj!.ref)) {
+        _all = [..._all, obj];
+      }
+
+      _enabled = {..._enabled, ref.kind};
+      final item = _toNearbyItem(obj);
+      _selected = item;
+      _emitReady();
+      return item;
+    } on Failure {
+      rethrow;
+    } catch (_) {
       return null;
     }
-
-    if (!_all.any((o) => o.ref == obj!.ref)) {
-      _all = [..._all, obj];
-    }
-
-    _enabled = {..._enabled, ref.kind};
-    final dist = GeoMath.distanceMeters(
-      lat1: _lat,
-      lng1: _lng,
-      lat2: obj.lat,
-      lng2: obj.lng,
-    );
-    final bearing = GeoMath.bearingDegrees(
-      lat1: _lat,
-      lng1: _lng,
-      lat2: obj.lat,
-      lng2: obj.lng,
-    );
-    final item = ArNearbyItem(
-      object: obj,
-      distanceMeters: dist,
-      bearingDegrees: bearing,
-      relativeDegrees: GeoMath.relativeBearing(bearing, _heading),
-    );
-    _selected = item;
-    _emitReady();
-    return item;
   }
 
   void _scheduleReload() {
@@ -466,6 +483,10 @@ class ArSessionCubit extends Cubit<ArSessionState> {
   }
 
   Future<void> _reloadObjects({bool force = false}) async {
+    if (!_hasGeoCoords) {
+      return;
+    }
+
     if (!force && _indoorPeerId == 0 && _cacheAt != null && _cacheLat != null && _cacheLng != null && _all.isNotEmpty) {
       final age = DateTime.now().difference(_cacheAt!);
       final moved = GeoMath.distanceMeters(
@@ -500,58 +521,18 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _cacheAt = DateTime.now();
   }
 
+  Future<void> _reloadObjectsSafely({bool force = false}) async {
+    try {
+      await _reloadObjects(force: force);
+    } catch (_) {}
+  }
+
   List<ArNearbyItem> _computeNearby() {
     final indoor = _indoorPeerId > 0;
     final filtered = indoor
       ? _all
       : _all.where((o) => _enabled.contains(o.kind)).toList();
-    final items = <ArNearbyItem>[];
-
-    final (userX, userY) = indoor
-      ? GeoMath.enuMeters(
-        originLat: _hasIndoorOrigin ? _indoorOriginLat : _lat,
-        originLng: _hasIndoorOrigin ? _indoorOriginLng : _lng,
-        lat: _lat,
-        lng: _lng,
-      )
-      : (0.0, 0.0);
-
-    for (final o in filtered) {
-      late final double bearing;
-      var dist = 0.0;
-
-      if (indoor && o.coveredInside) {
-        final dx = o.localX - userX;
-        final dy = o.localY - userY;
-        dist = GeoMath.hypot(dx, dy);
-        if (dist < 0.8) {
-          bearing = o.headingDeg != 0 ? o.headingDeg : _heading;
-          dist = 2.0 + o.localZ.abs() * 0.05;
-        } else {
-          bearing = GeoMath.bearingFromEnu(dx, dy);
-        }
-      } else {
-        dist = GeoMath.distanceMeters(
-          lat1: _lat,
-          lng1: _lng,
-          lat2: o.lat,
-          lng2: o.lng,
-        );
-        bearing = GeoMath.bearingDegrees(
-          lat1: _lat,
-          lng1: _lng,
-          lat2: o.lat,
-          lng2: o.lng,
-        );
-      }
-
-      items.add(ArNearbyItem(
-        object: o,
-        distanceMeters: dist,
-        bearingDegrees: bearing,
-        relativeDegrees: GeoMath.relativeBearing(bearing, _heading),
-      ));
-    }
+    final items = filtered.map(_toNearbyItem).toList();
 
     items.sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
     if (indoor) {
@@ -559,6 +540,50 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     }
 
     return _clusterNodes(items);
+  }
+
+  ArNearbyItem _toNearbyItem(ArMapObject o) {
+    final indoor = _indoorPeerId > 0;
+    late final double bearing;
+    var dist = 0.0;
+
+    if (indoor && o.coveredInside) {
+      final (userX, userY) = GeoMath.enuMeters(
+        originLat: _hasIndoorOrigin ? _indoorOriginLat : _lat,
+        originLng: _hasIndoorOrigin ? _indoorOriginLng : _lng,
+        lat: _lat,
+        lng: _lng,
+      );
+      final dx = o.localX - userX;
+      final dy = o.localY - userY;
+      dist = GeoMath.hypot(dx, dy);
+      if (dist < 0.8) {
+        bearing = o.headingDeg;
+        dist = 2.0 + o.localZ.abs() * 0.05;
+      } else {
+        bearing = GeoMath.bearingFromEnu(dx, dy);
+      }
+    } else {
+      dist = GeoMath.distanceMeters(
+        lat1: _lat,
+        lng1: _lng,
+        lat2: o.lat,
+        lng2: o.lng,
+      );
+      bearing = GeoMath.bearingDegrees(
+        lat1: _lat,
+        lng1: _lng,
+        lat2: o.lat,
+        lng2: o.lng,
+      );
+    }
+
+    return ArNearbyItem(
+      object: o,
+      distanceMeters: dist,
+      bearingDegrees: bearing,
+      relativeDegrees: GeoMath.relativeBearing(bearing, _heading),
+    );
   }
 
   List<ArNearbyItem> _clusterNodes(List<ArNearbyItem> items) {
@@ -634,31 +659,17 @@ class ArSessionCubit extends Cubit<ArSessionState> {
 
     ArNearbyItem? nav;
     if (_navRef != null) {
-      final flat = [
-        ...nearby.expand((e) => e.isCluster ? e.clusterItems : [e]),
-        ..._all.map((o) {
-          final dist = GeoMath.distanceMeters(
-            lat1: _lat,
-            lng1: _lng,
-            lat2: o.lat,
-            lng2: o.lng,
-          );
-          final bearing = GeoMath.bearingDegrees(
-            lat1: _lat,
-            lng1: _lng,
-            lat2: o.lat,
-            lng2: o.lng,
-          );
-          return ArNearbyItem(
-            object: o,
-            distanceMeters: dist,
-            bearingDegrees: bearing,
-            relativeDegrees: GeoMath.relativeBearing(bearing, _heading),
-          );
-        }),
-      ];
+      final flat = nearby.expand((e) => e.isCluster ? e.clusterItems : [e]);
       final found = flat.where((e) => e.object.ref == _navRef);
       nav = found.isEmpty ? null : found.first;
+      if (nav == null) {
+        for (final o in _all) {
+          if (o.ref == _navRef) {
+            nav = _toNearbyItem(o);
+            break;
+          }
+        }
+      }
       if (nav != null && nav.distanceMeters < 8) {
         _navRef = null;
         nav = null;

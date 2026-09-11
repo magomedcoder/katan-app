@@ -25,6 +25,31 @@ String formatChatTime(DateTime? value) {
   return _shortDateTimeFormat.format(value);
 }
 
+String formatChatDateDivider(DateTime? value) {
+  if (value == null) {
+    return '';
+  }
+
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(value.year, value.month, value.day);
+
+  if (day == today) {
+    return 'Сегодня';
+  }
+
+  final yesterday = today.subtract(const Duration(days: 1));
+  if (day == yesterday) {
+    return 'Вчера';
+  }
+
+  if (value.year == now.year) {
+    return DateFormat('d MMMM').format(value);
+  }
+
+  return DateFormat('d MMMM yyyy').format(value);
+}
+
 String statusLabel(String status) {
   return switch (status) {
     'new' => 'Новая',

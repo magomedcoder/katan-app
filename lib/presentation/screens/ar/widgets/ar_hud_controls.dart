@@ -89,6 +89,13 @@ class ArHudControls extends StatelessWidget {
         checked: soloKind == null && enabled.length == kinds.length,
         dividerBefore: true,
       ),
+      for (var n = 0; n < kinds.length; n++)
+        _HudMenuOption(
+          index: kinds.length + 1 + n,
+          label: 'Только ${kinds[n].label.toLowerCase()}',
+          checked: soloKind == kinds[n],
+          solo: soloKind == kinds[n],
+        ),
     ];
 
     final i = await _showHudMenu(context, items: options);
@@ -100,6 +107,8 @@ class ArHudControls extends StatelessWidget {
       onToggle(kinds[i]);
     } else if (i == kinds.length) {
       onEnableAll();
+    } else {
+      onSolo(kinds[i - kinds.length - 1]);
     }
   }
 

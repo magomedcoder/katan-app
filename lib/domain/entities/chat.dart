@@ -128,6 +128,8 @@ class ChatRoom extends Equatable {
   }
 
   ChatRoom copyWith({
+    String? title,
+    int? memberCount,
     int? unreadCount,
     List<ChatMember>? members,
     ChatRoomPreview? lastMessage,
@@ -137,8 +139,8 @@ class ChatRoom extends Equatable {
     return ChatRoom(
       id: id,
       type: type,
-      title: title,
-      memberCount: memberCount,
+      title: title ?? this.title,
+      memberCount: memberCount ?? this.memberCount,
       unreadCount: unreadCount ?? this.unreadCount,
       members: members ?? this.members,
       lastMessage: lastMessage ?? this.lastMessage,
@@ -204,6 +206,26 @@ class ChatMessage extends Equatable {
     return author?.username == currentUsername;
   }
 
+  bool get isEdited => editedAt != null;
+
+  ChatMessage copyWith({
+    String? body,
+    DateTime? editedAt,
+    List<ChatAttachment>? attachments,
+    int? replyToId,
+  }) {
+    return ChatMessage(
+      id: id,
+      roomId: roomId,
+      author: author,
+      body: body ?? this.body,
+      replyToId: replyToId ?? this.replyToId,
+      createdAt: createdAt,
+      editedAt: editedAt ?? this.editedAt,
+      attachments: attachments ?? this.attachments,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -215,6 +237,36 @@ class ChatMessage extends Equatable {
     editedAt,
     attachments,
   ];
+}
+
+class ChatSearchResult extends Equatable {
+  const ChatSearchResult({
+    required this.rooms,
+    required this.users,
+  });
+
+  final List<ChatRoom> rooms;
+  final List<UserRef> users;
+
+  @override
+  List<Object?> get props => [rooms, users];
+}
+
+class ChatPendingAttachment extends Equatable {
+  const ChatPendingAttachment({
+    required this.name,
+    required this.mimeType,
+    required this.bytes,
+  });
+
+  final String name;
+  final String mimeType;
+  final List<int> bytes;
+
+  int get size => bytes.length;
+
+  @override
+  List<Object?> get props => [name, mimeType, size];
 }
 
 class ChatUnreadCounts extends Equatable {

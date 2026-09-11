@@ -1,8 +1,7 @@
-import 'dart:io' show Platform;
-
 import 'package:fixnum/fixnum.dart';
 import 'package:grpc/grpc.dart';
 import 'package:katan/core/error/failures.dart';
+import 'package:katan/core/utils/app_agent.dart';
 import 'package:katan/core/network/grpc_client_factory.dart';
 import 'package:katan/core/storage/session_storage.dart';
 import 'package:katan/data/mappers/account_mappers.dart';
@@ -20,7 +19,7 @@ class AccountRemoteDataSource {
     try {
       final client = await _client();
       final response = await client.getAccount(
-        GetAccountRequest(agent: _agent),
+        GetAccountRequest(agent: await AppAgent.get()),
         options: await _authOptions(),
       );
 
@@ -114,11 +113,4 @@ class AccountRemoteDataSource {
     return ServerFailure(e.message ?? fallback);
   }
 
-  String get _agent {
-    try {
-      return 'katan-app-${Platform.operatingSystem}';
-    } catch (_) {
-      return 'katan-app';
-    }
-  }
 }

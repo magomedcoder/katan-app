@@ -8,6 +8,7 @@ import 'package:katan/domain/entities/task.dart';
 import 'package:katan/domain/entities/task_comment.dart';
 import 'package:katan/domain/repositories/file_repository.dart';
 import 'package:katan/domain/usecases/add_task_comment_usecase.dart';
+import 'package:katan/domain/usecases/create_direct_chat_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_file_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/get_task_comments_usecase.dart';
@@ -15,10 +16,12 @@ import 'package:katan/domain/usecases/get_task_files_usecase.dart';
 import 'package:katan/domain/usecases/get_task_usecase.dart';
 import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
+import 'package:katan/presentation/cubit/home_cubit.dart';
 import 'package:katan/presentation/cubit/task_detail_cubit.dart';
 import 'package:katan/core/utils/formatters.dart';
 import 'package:katan/core/utils/task_status.dart';
 import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
+import 'package:katan/presentation/screens/chat/chat_room_screen.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -336,10 +339,16 @@ class _TaskMetaSection extends StatelessWidget {
         _MetaRow(
           label: 'Исполнитель',
           value: task.assignee?.displayName ?? '',
+          onChat: task.assignee != null && task.assignee!.id > 0
+              ? () => _openDirectChat(context, task.assignee!.id)
+              : null,
         ),
         _MetaRow(
           label: 'Автор',
           value: task.creator?.displayName ?? '',
+          onChat: task.creator != null && task.creator!.id > 0
+              ? () => _openDirectChat(context, task.creator!.id)
+              : null,
         ),
         _MetaRow(label: 'Срок', value: formatDateTime(task.dueAt)),
         _MetaRow(label: 'Создана', value: formatDateTime(task.createdAt)),
@@ -348,11 +357,50 @@ class _TaskMetaSection extends StatelessWidget {
   }
 }
 
+Future<void> _openDirectChat(BuildContext context, int userId) async {
+  final homeState = context.read<HomeCubit>().state;
+  if (homeState is! HomeLoaded || !homeState.account.canWriteChat) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Нет права писать в чат')),
+    );
+    return;
+  }
+
+  try {
+    final room = await getIt<CreateDirectChatUseCase>()(userId);
+    if (!context.mounted) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatRoomScreen(
+          roomId: room.id,
+          currentUsername: homeState.account.username,
+          canWrite: homeState.account.canWriteChat,
+          canManage: homeState.account.canManageChat,
+        ),
+      ),
+    );
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+}
+
 class _MetaRow extends StatelessWidget {
-  const _MetaRow({required this.label, required this.value});
+  const _MetaRow({
+    required this.label,
+    required this.value,
+    this.onChat,
+  });
 
   final String label;
   final String value;
+  final VoidCallback? onChat;
 
   @override
   Widget build(BuildContext context) {
@@ -372,6 +420,13 @@ class _MetaRow extends StatelessWidget {
             ),
           ),
           Expanded(child: Text(value)),
+          if (onChat != null && value.isNotEmpty)
+            IconButton(
+              tooltip: 'Написать',
+              visualDensity: VisualDensity.compact,
+              onPressed: onChat,
+              icon: const Icon(Icons.chat_bubble_outline, size: 20),
+            ),
         ],
       ),
     );

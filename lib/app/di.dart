@@ -49,6 +49,17 @@ import 'package:katan/domain/usecases/list_chat_messages_usecase.dart';
 import 'package:katan/domain/usecases/list_chat_rooms_usecase.dart';
 import 'package:katan/domain/usecases/mark_chat_read_usecase.dart';
 import 'package:katan/domain/usecases/send_chat_message_usecase.dart';
+import 'package:katan/domain/usecases/search_chat_usecase.dart';
+import 'package:katan/domain/usecases/create_direct_chat_usecase.dart';
+import 'package:katan/domain/usecases/create_group_chat_usecase.dart';
+import 'package:katan/domain/usecases/update_group_chat_usecase.dart';
+import 'package:katan/domain/usecases/add_chat_members_usecase.dart';
+import 'package:katan/domain/usecases/remove_chat_member_usecase.dart';
+import 'package:katan/domain/usecases/leave_chat_room_usecase.dart';
+import 'package:katan/domain/usecases/edit_chat_message_usecase.dart';
+import 'package:katan/domain/usecases/delete_chat_message_usecase.dart';
+import 'package:katan/domain/usecases/refresh_chat_message_usecase.dart';
+import 'package:katan/domain/usecases/upload_chat_attachment_usecase.dart';
 import 'package:katan/domain/usecases/continue_ai_chat_assistant_usecase.dart';
 import 'package:katan/domain/usecases/create_ai_chat_session_usecase.dart';
 import 'package:katan/domain/usecases/delete_ai_chat_session_usecase.dart';
@@ -241,6 +252,39 @@ Future<void> configureDependencies() async {
       getIt<ChatRepository>(),
     ))
     ..registerLazySingleton(() => GetChatUnreadCountsUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => SearchChatUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => CreateDirectChatUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => CreateGroupChatUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => UpdateGroupChatUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => AddChatMembersUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => RemoveChatMemberUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => LeaveChatRoomUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => EditChatMessageUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => DeleteChatMessageUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => RefreshChatMessageUseCase(
+      getIt<ChatRepository>(),
+    ))
+    ..registerLazySingleton(() => UploadChatAttachmentUseCase(
       getIt<ChatRepository>(),
     ))
     ..registerLazySingleton<MapRemoteDataSource>(() => MapRemoteDataSource(

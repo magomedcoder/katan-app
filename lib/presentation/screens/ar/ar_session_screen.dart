@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
 import 'package:katan/app/theme.dart';
+import 'package:katan/core/error/failures.dart';
 import 'package:katan/domain/entities/account.dart';
 import 'package:katan/domain/repositories/ar_objects_repository.dart';
 import 'package:katan/presentation/cubit/ar_session_cubit.dart';
@@ -173,16 +174,22 @@ class _ArSessionViewState extends State<_ArSessionView> {
     }
 
     final ref = parsed.ref!;
-    final item = await context.read<ArSessionCubit>().resolveRef(ref);
-    if (!mounted) {
-      return;
-    }
+    try {
+      final item = await context.read<ArSessionCubit>().resolveRef(ref);
+      if (!mounted) {
+        return;
+      }
 
-    if (item == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Объект не найден или нет прав')));
-      return;
+      if (item == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Объект не найден или нет прав')));
+      }
+    } on Failure catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     }
-    await showArPreviewSheet(context, item);
   }
 
   @override
