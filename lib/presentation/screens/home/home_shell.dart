@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
+import 'package:katan/app/theme.dart';
 import 'package:katan/data/realtime/account_realtime_service.dart';
 import 'package:katan/domain/entities/account.dart';
 import 'package:katan/domain/entities/chat.dart';
@@ -11,6 +12,7 @@ import 'package:katan/domain/usecases/create_group_chat_usecase.dart';
 import 'package:katan/domain/usecases/get_account_usecase.dart';
 import 'package:katan/domain/usecases/get_chat_unread_counts_usecase.dart';
 import 'package:katan/domain/usecases/get_notifications_usecase.dart';
+import 'package:katan/domain/usecases/get_tasks_usecase.dart';
 import 'package:katan/domain/usecases/leave_chat_room_usecase.dart';
 import 'package:katan/domain/usecases/list_chat_rooms_usecase.dart';
 import 'package:katan/domain/usecases/mark_all_notifications_read_usecase.dart';
@@ -20,6 +22,7 @@ import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/chat_rooms_cubit.dart';
 import 'package:katan/presentation/cubit/home_cubit.dart';
 import 'package:katan/presentation/cubit/notifications_cubit.dart';
+import 'package:katan/presentation/cubit/overdue_tasks_cubit.dart';
 import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
 import 'package:katan/presentation/screens/ar/ar_session_screen.dart';
 import 'package:katan/presentation/screens/chat/chat_room_screen.dart';
@@ -61,13 +64,29 @@ class _HomeShellView extends StatelessWidget {
               onRetry: () => context.read<HomeCubit>().load(),
             ),
           ),
-          HomeLoaded(:final account) => BlocProvider(
-            create: (context) => NotificationsCubit(
-              getNotificationsUseCase: getIt<GetNotificationsUseCase>(),
-              markNotificationReadUseCase: getIt<MarkNotificationReadUseCase>(),
-              markAllNotificationsReadUseCase: getIt<MarkAllNotificationsReadUseCase>(),
-              authCubit: context.read<AuthCubit>(),
-            )..load(),
+          HomeLoaded(:final account) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (context) => NotificationsCubit(
+                  getNotificationsUseCase: getIt<GetNotificationsUseCase>(),
+                  markNotificationReadUseCase: getIt<MarkNotificationReadUseCase>(),
+                  markAllNotificationsReadUseCase: getIt<MarkAllNotificationsReadUseCase>(),
+                  authCubit: context.read<AuthCubit>(),
+                )..load(),
+              ),
+              BlocProvider(
+                create: (context) {
+                  final cubit = OverdueTasksCubit(
+                    getTasksUseCase: getIt<GetTasksUseCase>(),
+                    username: account.username,
+                  );
+                  if (account.canReadTask) {
+                    unawaited(cubit.load());
+                  }
+                  return cubit;
+                },
+              ),
+            ],
             child: account.canReadChat
               ? _ChatRealtimeHost(
                 child: BlocProvider(
@@ -263,7 +282,12 @@ class _HomeTabsState extends State<_HomeTabs> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
-        onDestinationSelected: (value) => setState(() => _index = value),
+        onDestinationSelected: (value) {
+          setState(() => _index = value);
+          if (tabs[value].label == 'Задачи' && widget.account.canReadTask) {
+            unawaited(context.read<OverdueTasksCubit>().load());
+          }
+        },
         destinations: [
           for (final tab in tabs)
             NavigationDestination(
@@ -280,6 +304,7 @@ class _HomeTabsState extends State<_HomeTabs> {
     return switch (tab.label) {
       'Чат' => _ChatTabIcon(selected: selected),
       'Уведомления' => _NotificationsTabIcon(selected: selected),
+      'Задачи' => _TasksTabIcon(selected: selected),
       _ => Icon(selected ? tab.selectedIcon : tab.icon),
     };
   }
@@ -314,6 +339,28 @@ class _ChatTabIcon extends StatelessWidget {
         return Badge(
           isLabelVisible: unread > 0,
           label: Text(unread > 99 ? '99+' : '$unread'),
+          child: icon,
+        );
+      },
+    );
+  }
+}
+
+class _TasksTabIcon extends StatelessWidget {
+  const _TasksTabIcon({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = Icon(selected ? Icons.task_alt : Icons.task_alt_outlined);
+
+    return BlocBuilder<OverdueTasksCubit, int>(
+      builder: (context, overdue) {
+        return Badge(
+          isLabelVisible: overdue > 0,
+          backgroundColor: AppColors.danger,
+          label: Text(overdue > 99 ? '99+' : '$overdue'),
           child: icon,
         );
       },

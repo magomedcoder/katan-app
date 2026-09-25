@@ -31,6 +31,20 @@ class Account extends Equatable {
 
   bool get canDeleteTask => hasPermission('task|delete') || hasPermission('-1');
 
+  bool canDeleteTaskOf(String? creatorUsername) {
+    if (canDeleteTask) {
+      return true;
+    }
+
+    if (!canWriteTask) {
+      return false;
+    }
+
+    final creator = (creatorUsername ?? '').trim().toLowerCase();
+    final me = username.trim().toLowerCase();
+    return creator.isNotEmpty && me.isNotEmpty && creator == me;
+  }
+
   Set<ArObjectKind> get arAllowedKinds {
     final kinds = <ArObjectKind>{};
     if (hasPermission('node|read') || hasPermission('node|write')) {

@@ -13,11 +13,17 @@ class GetTasksUseCase {
     String query = '',
     int? projectId,
     String status = '',
+    int? parentId,
+    int? objectType,
+    int? objectId,
   }) => _repository.getTasks(
     page: page,
     limit: limit,
     query: query,
     projectId: projectId,
     status: status,
+    parentId: parentId,
+    objectType: objectType,
+    objectId: objectId,
   );
 }

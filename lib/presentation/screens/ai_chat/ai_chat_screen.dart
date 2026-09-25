@@ -189,7 +189,7 @@ class _AiChatViewState extends State<_AiChatView> {
           body = SingleChildScrollView(child: SelectableText(text));
         } else {
           body = Text(
-            'Файл «${file.filename}» (${file.mimeType.isEmpty ? 'binary' : file.mimeType}, ${file.content.length} байт).\n'
+            "Файл '${file.filename}' (${file.mimeType.isEmpty ? 'binary' : file.mimeType}, ${file.content.length} байт).\n"
             'Просмотр этого типа на мобиле пока не поддерживается.',
           );
         }

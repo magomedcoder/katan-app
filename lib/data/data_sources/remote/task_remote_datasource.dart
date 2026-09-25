@@ -7,6 +7,8 @@ import 'package:katan/data/mappers/entity_mappers.dart';
 import 'package:katan/domain/entities/paged_result.dart';
 import 'package:katan/domain/entities/task.dart';
 import 'package:katan/domain/entities/task_comment.dart' as domain;
+import 'package:katan/domain/entities/task_history_entry.dart';
+import 'package:katan/domain/entities/task_tag.dart';
 import 'package:katan/generated/pb/common.pb.dart';
 import 'package:katan/generated/pb/task.pbgrpc.dart';
 
@@ -22,6 +24,9 @@ class TaskRemoteDataSource {
     String query = '',
     int? projectId,
     String status = '',
+    int? parentId,
+    int? objectType,
+    int? objectId,
   }) async {
     try {
       final client = await _client();
@@ -34,6 +39,9 @@ class TaskRemoteDataSource {
           query: query,
           projectId: projectId != null ? Int64(projectId) : Int64.ZERO,
           status: status,
+          parentId: parentId != null ? Int64(parentId) : Int64.ZERO,
+          objectType: objectType ?? 0,
+          objectId: objectId != null ? Int64(objectId) : Int64.ZERO,
         ),
         options: await _authOptions(),
       );
@@ -108,10 +116,50 @@ class TaskRemoteDataSource {
     }
   }
 
+  Future<void> deleteTaskComment(int commentId) async {
+    try {
+      final client = await _client();
+      await client.deleteTaskComment(
+        DeleteTaskCommentRequest(id: Int64(commentId)),
+        options: await _authOptions(),
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось удалить комментарий');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<List<TaskHistoryEntry>> getTaskHistory(int taskId) async {
+    try {
+      final client = await _client();
+      final response = await client.getTaskHistory(
+        GetTaskHistoryRequest(taskId: Int64(taskId)),
+        options: await _authOptions(),
+      );
+      return response.items.map(mapTaskHistoryEntry).toList();
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось загрузить историю');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
   Future<TaskDetail> createTask({
     required String title,
     required String description,
     int? projectId,
+    int? assigneeId,
+    int? columnId,
+    int? parentId,
+    DateTime? dueAt,
+    int storyPoints = 0,
+    int objectType = 0,
+    int? objectId,
   }) async {
     try {
       final client = await _client();
@@ -120,6 +168,13 @@ class TaskRemoteDataSource {
           title: title,
           description: description,
           projectId: projectId != null ? Int64(projectId) : Int64.ZERO,
+          assigneeId: assigneeId != null ? Int64(assigneeId) : Int64.ZERO,
+          columnId: columnId != null ? Int64(columnId) : Int64.ZERO,
+          parentId: parentId != null ? Int64(parentId) : Int64.ZERO,
+          dueAt: _toUnix(dueAt),
+          storyPoints: storyPoints,
+          objectType: objectType,
+          objectId: objectId != null ? Int64(objectId) : Int64.ZERO,
         ),
         options: await _authOptions(),
       );
@@ -128,6 +183,219 @@ class TaskRemoteDataSource {
       rethrow;
     } on GrpcError catch (e) {
       throw _mapGrpc(e, 'Не удалось создать задачу');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<TaskDetail> updateTask({
+    required int taskId,
+    required String title,
+    required String description,
+    DateTime? dueAt,
+    int storyPoints = 0,
+  }) async {
+    try {
+      final client = await _client();
+      final options = await _authOptions();
+      final current = await client.getTask(
+        GetTaskRequest(id: Int64(taskId)),
+        options: options,
+      );
+      final task = current.task;
+
+      await client.updateTask(
+        UpdateTaskRequest(
+          id: task.id,
+          title: title,
+          description: description,
+          creatorId: task.hasCreator() ? task.creator.id : Int64.ZERO,
+          assigneeId: task.hasAssignee() ? task.assignee.id : Int64.ZERO,
+          observerIds: task.observers.map((user) => user.id),
+          columnId: task.columnId,
+          dueAt: _toUnix(dueAt),
+          tagIds: task.tags.map((tag) => tag.id),
+          storyPoints: storyPoints,
+        ),
+        options: options,
+      );
+
+      final refreshed = await client.getTask(
+        GetTaskRequest(id: Int64(taskId)),
+        options: options,
+      );
+      return mapTaskDetail(refreshed.task);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось сохранить задачу');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<void> deleteTask(int taskId) async {
+    try {
+      final client = await _client();
+      await client.deleteTask(
+        DeleteTaskRequest(id: Int64(taskId)),
+        options: await _authOptions(),
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось удалить задачу');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<TaskWorkflowResult> runTaskWorkflowAction({
+    required int taskId,
+    required String action,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.runTaskWorkflowAction(
+        RunTaskWorkflowActionRequest(
+          taskId: Int64(taskId),
+          action: action,
+        ),
+        options: await _authOptions(),
+      );
+      return TaskWorkflowResult(
+        task: mapTaskDetail(response.task),
+        changed: response.changed,
+        message: response.message,
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось выполнить действие');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<void> setTaskAssignee({
+    required int taskId,
+    required int assigneeId,
+  }) async {
+    try {
+      final client = await _client();
+      await client.setTaskAssignee(
+        SetTaskAssigneeRequest(
+          taskId: Int64(taskId),
+          assigneeId: Int64(assigneeId),
+        ),
+        options: await _authOptions(),
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось назначить исполнителя');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<void> setTaskObservers({
+    required int taskId,
+    required List<int> observerIds,
+  }) async {
+    try {
+      final client = await _client();
+      await client.setTaskObservers(
+        SetTaskObserversRequest(
+          taskId: Int64(taskId),
+          observerIds: observerIds.map(Int64.new),
+        ),
+        options: await _authOptions(),
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось сохранить наблюдателей');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<void> setTaskTags({
+    required int taskId,
+    required List<int> tagIds,
+  }) async {
+    try {
+      final client = await _client();
+      await client.setTaskTags(
+        SetTaskTagsRequest(
+          taskId: Int64(taskId),
+          tagIds: tagIds.map(Int64.new),
+        ),
+        options: await _authOptions(),
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось сохранить теги');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<List<TaskLabel>> getTaskLabels({int projectId = 0}) async {
+    try {
+      final client = await _client();
+      final response = await client.getTaskLabels(
+        GetTaskLabelsRequest(projectId: Int64(projectId)),
+        options: await _authOptions(),
+      );
+      return response.items.map(mapTaskLabel).toList();
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось загрузить метки');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<TaskLabel> createTaskLabel({
+    required String name,
+    String color = '#409eff',
+    int projectId = 0,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.createTaskLabel(
+        CreateTaskLabelRequest(
+          name: name,
+          color: color,
+          projectId: Int64(projectId),
+        ),
+        options: await _authOptions(),
+      );
+      return mapTaskLabel(response);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось создать метку');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<void> deleteTaskLabel(int labelId) async {
+    try {
+      final client = await _client();
+      await client.deleteTaskLabel(
+        DeleteTaskLabelRequest(id: Int64(labelId)),
+        options: await _authOptions(),
+      );
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось удалить метку');
     } catch (e) {
       throw NetworkFailure(e.toString());
     }
@@ -159,6 +427,7 @@ class TaskRemoteDataSource {
           columnId: task.columnId,
           dueAt: task.dueAt,
           tagIds: task.tags.map((tag) => tag.id),
+          storyPoints: task.storyPoints,
         ),
         options: options,
       );
@@ -175,6 +444,14 @@ class TaskRemoteDataSource {
     } catch (e) {
       throw NetworkFailure(e.toString());
     }
+  }
+
+  Int64 _toUnix(DateTime? value) {
+    if (value == null) {
+      return Int64.ZERO;
+    }
+
+    return Int64(value.millisecondsSinceEpoch ~/ 1000);
   }
 
   Future<TaskServiceClient> _client() async {

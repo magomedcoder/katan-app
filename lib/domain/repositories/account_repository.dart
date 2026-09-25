@@ -2,6 +2,8 @@ import 'package:katan/domain/entities/account.dart';
 import 'package:katan/domain/entities/app_notification.dart';
 
 abstract class AccountRepository {
+  Account? get cachedAccount;
+
   Future<Account> getAccount();
 
   Future<AppNotificationsPage> getNotifications();

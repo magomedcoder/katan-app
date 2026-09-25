@@ -10,9 +10,23 @@ class CreateTaskUseCase {
     required String title,
     required String description,
     int? projectId,
+    int? assigneeId,
+    int? columnId,
+    int? parentId,
+    DateTime? dueAt,
+    int storyPoints = 0,
+    int objectType = 0,
+    int? objectId,
   }) => _repository.createTask(
     title: title,
     description: description,
     projectId: projectId,
+    assigneeId: assigneeId,
+    columnId: columnId,
+    parentId: parentId,
+    dueAt: dueAt,
+    storyPoints: storyPoints,
+    objectType: objectType,
+    objectId: objectId,
   );
 }

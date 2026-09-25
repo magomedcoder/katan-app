@@ -55,3 +55,68 @@ Color taskStatusBackground(String status) {
     _ => AppColors.fill,
   };
 }
+
+String detectTaskStatusFromColumn(String? columnTitle) {
+  final title = (columnTitle ?? '').trim().toLowerCase();
+  if (title.isEmpty) {
+    return '';
+  }
+
+  if (title.contains('отлож')) {
+    return TaskStatuses.postpone;
+  }
+
+  if (title.contains('готов') || title.contains('заверш') || title.contains('done') || title.contains('complete')) {
+    return TaskStatuses.complete;
+  }
+
+  if (title.contains('работ')) {
+    return TaskStatuses.inProgress;
+  }
+
+  if (title.contains('нов')) {
+    return TaskStatuses.neu;
+  }
+
+  return '';
+}
+
+String taskHistoryActionLabel(String action) {
+  return switch (action) {
+    'created' => 'Создание',
+    'updated' => 'Изменение',
+    'comment_added' => 'Комментарий',
+    'comment_deleted' => 'Удаление комментария',
+    'moved' => 'Перемещение',
+    'deleted' => 'Удаление',
+    _ => action,
+  };
+}
+
+int taskWorkSeconds({
+  required int timeSpentSeconds,
+  DateTime? workStartedAt,
+  DateTime? now,
+}) {
+  var total = timeSpentSeconds;
+  if (workStartedAt != null) {
+    final current = now ?? DateTime.now();
+    final delta = current.difference(workStartedAt).inSeconds;
+    total += delta > 0 ? delta : 0;
+  }
+
+  return total < 0 ? 0 : total;
+}
+
+String formatWorkDuration(int totalSeconds) {
+  final seconds = totalSeconds < 0 ? 0 : totalSeconds;
+  final hours = seconds ~/ 3600;
+  final minutes = (seconds % 3600) ~/ 60;
+  final rest = seconds % 60;
+
+  if (hours > 0) {
+    return '$hours:${minutes.toString().padLeft(2, '0')}:${rest.toString().padLeft(2, '0')}';
+  }
+
+  return '$minutes:${rest.toString().padLeft(2, '0')}';
+}

@@ -217,7 +217,7 @@ class _RoomsBody extends StatelessWidget {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text('Покинуть чат?'),
-                        content: Text('Выйти из «${room.displayTitle(account.username)}»?'),
+                        content: Text("Выйти из '${room.displayTitle(account.username)}'?"),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),

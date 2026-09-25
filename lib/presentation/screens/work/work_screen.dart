@@ -33,7 +33,11 @@ class WorkScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            TasksScreen(embedded: true, canWriteTask: canWriteTask),
+            TasksScreen(
+              embedded: true,
+              canWriteTask: canWriteTask,
+              showProjectFilter: true,
+            ),
             const ProjectsScreen(embedded: true),
           ],
         ),

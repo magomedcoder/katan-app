@@ -12,6 +12,7 @@ class SessionStorage {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _usernameKey = 'username';
+  static const _taskStatusFilterKey = 'task_status_filter';
   static const _secureTimeout = Duration(milliseconds: 800);
 
   final SharedPreferences _prefs;
@@ -44,6 +45,10 @@ class SessionStorage {
   String? get username => _prefs.getString(_usernameKey);
 
   Future<void> setUsername(String username) => _prefs.setString(_usernameKey, username);
+
+  String? get taskStatusFilter => _prefs.getString(_taskStatusFilterKey);
+
+  Future<void> setTaskStatusFilter(String status) => _prefs.setString(_taskStatusFilterKey, status);
 
   Future<void> saveTokens({
     required String accessToken,

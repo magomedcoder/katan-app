@@ -26,17 +26,35 @@ class ProjectsLoaded extends ProjectsState {
     required this.total,
     required this.query,
     required this.loadingMore,
+    this.refreshing = false,
   });
 
   final List<ProjectSummary> items;
   final int total;
   final String query;
   final bool loadingMore;
+  final bool refreshing;
 
   bool get hasMore => items.length < total;
 
+  ProjectsLoaded copyWith({
+    List<ProjectSummary>? items,
+    int? total,
+    String? query,
+    bool? loadingMore,
+    bool? refreshing,
+  }) {
+    return ProjectsLoaded(
+      items: items ?? this.items,
+      total: total ?? this.total,
+      query: query ?? this.query,
+      loadingMore: loadingMore ?? this.loadingMore,
+      refreshing: refreshing ?? this.refreshing,
+    );
+  }
+
   @override
-  List<Object?> get props => [items, total, query, loadingMore];
+  List<Object?> get props => [items, total, query, loadingMore, refreshing];
 }
 
 class ProjectsFailure extends ProjectsState {
@@ -64,13 +82,18 @@ class ProjectsCubit extends Cubit<ProjectsState> {
   int _page = 1;
   String _query = '';
 
-  Future<void> load({String? query}) async {
+  Future<void> load({String? query, bool showSkeleton = false}) async {
     _page = 1;
     if (query != null) {
       _query = query;
     }
 
-    emit(const ProjectsLoading());
+    final current = state;
+    if (current is ProjectsLoaded && !showSkeleton) {
+      emit(current.copyWith(refreshing: true));
+    } else {
+      emit(const ProjectsLoading());
+    }
 
     try {
       final result = await _getProjectsUseCase(
@@ -139,5 +162,5 @@ class ProjectsCubit extends Cubit<ProjectsState> {
     }
   }
 
-  Future<void> search(String query) => load(query: query.trim());
+  Future<void> search(String query) => load(query: query.trim(), showSkeleton: true);
 }

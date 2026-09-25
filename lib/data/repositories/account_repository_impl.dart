@@ -8,8 +8,17 @@ class AccountRepositoryImpl implements AccountRepository {
 
   final AccountRemoteDataSource _remote;
 
+  Account? _cachedAccount;
+
   @override
-  Future<Account> getAccount() => _remote.getAccount();
+  Account? get cachedAccount => _cachedAccount;
+
+  @override
+  Future<Account> getAccount() async {
+    final account = await _remote.getAccount();
+    _cachedAccount = account;
+    return account;
+  }
 
   @override
   Future<AppNotificationsPage> getNotifications() => _remote.getNotifications();

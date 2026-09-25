@@ -9,10 +9,12 @@ class TaskListCard extends StatelessWidget {
     super.key,
     required this.task,
     required this.onTap,
+    this.menu,
   });
 
   final TaskSummary task;
   final VoidCallback onTap;
+  final Widget? menu;
 
   @override
   Widget build(BuildContext context) {
@@ -53,14 +55,29 @@ class TaskListCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (task.isPaused)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
+                  if (task.isRunning)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Icon(
+                        Icons.play_circle_outline,
+                        size: 18,
+                        color: AppColors.success,
+                      ),
+                    )
+                  else if (task.isPaused)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
                       child: Icon(
                         Icons.pause_circle_outline,
                         size: 18,
                         color: AppColors.warning,
                       ),
+                    ),
+                  if (menu != null)
+                    SizedBox(
+                      width: 32,
+                      height: 28,
+                      child: menu,
                     ),
                 ],
               ),

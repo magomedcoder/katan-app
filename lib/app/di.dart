@@ -21,8 +21,26 @@ import 'package:katan/data/data_sources/remote/map_remote_datasource.dart';
 import 'package:katan/data/repositories/ar_objects_repository_impl.dart';
 import 'package:katan/domain/usecases/add_task_comment_usecase.dart';
 import 'package:katan/domain/usecases/append_task_description_usecase.dart';
+import 'package:katan/domain/usecases/close_project_usecase.dart';
+import 'package:katan/domain/usecases/create_project_usecase.dart';
+import 'package:katan/domain/usecases/create_task_label_usecase.dart';
 import 'package:katan/domain/usecases/create_task_usecase.dart';
+import 'package:katan/domain/usecases/delete_project_usecase.dart';
+import 'package:katan/domain/usecases/delete_task_comment_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_file_usecase.dart';
+import 'package:katan/domain/usecases/delete_task_label_usecase.dart';
+import 'package:katan/domain/usecases/delete_task_usecase.dart';
+import 'package:katan/domain/usecases/get_project_kanban_usecase.dart';
+import 'package:katan/domain/usecases/get_project_members_usecase.dart';
+import 'package:katan/domain/usecases/get_task_history_usecase.dart';
+import 'package:katan/domain/usecases/get_task_labels_usecase.dart';
+import 'package:katan/domain/usecases/move_task_usecase.dart';
+import 'package:katan/domain/usecases/run_task_workflow_action_usecase.dart';
+import 'package:katan/domain/usecases/set_project_members_usecase.dart';
+import 'package:katan/domain/usecases/set_task_assignee_usecase.dart';
+import 'package:katan/domain/usecases/set_task_observers_usecase.dart';
+import 'package:katan/domain/usecases/set_task_tags_usecase.dart';
+import 'package:katan/domain/usecases/update_task_usecase.dart';
 import 'package:katan/domain/usecases/get_account_usecase.dart';
 import 'package:katan/domain/usecases/get_notifications_usecase.dart';
 import 'package:katan/domain/usecases/mark_all_notifications_read_usecase.dart';
@@ -139,7 +157,40 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton(() => AddTaskCommentUseCase(
       getIt<TaskRepository>()
     ))
+    ..registerLazySingleton(() => DeleteTaskCommentUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => GetTaskHistoryUseCase(
+      getIt<TaskRepository>()
+    ))
     ..registerLazySingleton(() => CreateTaskUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => UpdateTaskUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => DeleteTaskUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => RunTaskWorkflowActionUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => SetTaskAssigneeUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => SetTaskObserversUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => SetTaskTagsUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => GetTaskLabelsUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => CreateTaskLabelUseCase(
+      getIt<TaskRepository>()
+    ))
+    ..registerLazySingleton(() => DeleteTaskLabelUseCase(
       getIt<TaskRepository>()
     ))
     ..registerLazySingleton(() => AppendTaskDescriptionUseCase(
@@ -156,6 +207,27 @@ Future<void> configureDependencies() async {
       getIt<ProjectRepository>()
     ))
     ..registerLazySingleton(() => GetProjectUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => GetProjectKanbanUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => MoveTaskUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => GetProjectMembersUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => SetProjectMembersUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => CreateProjectUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => CloseProjectUseCase(
+      getIt<ProjectRepository>()
+    ))
+    ..registerLazySingleton(() => DeleteProjectUseCase(
       getIt<ProjectRepository>()
     ))
     ..registerLazySingleton<FileRemoteDataSource>(() => FileRemoteDataSource(
