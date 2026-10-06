@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:katan/core/ar_launch_bus.dart';
 import 'package:katan/core/network/grpc_client_factory.dart';
 import 'package:katan/core/storage/session_storage.dart';
 import 'package:katan/data/data_sources/remote/account_remote_datasource.dart';
@@ -104,6 +105,7 @@ Future<void> configureDependencies() async {
 
   getIt
     ..registerSingleton<SessionStorage>(SessionStorage(prefs: prefs))
+    ..registerSingleton<ArLaunchBus>(ArLaunchBus())
     ..registerSingleton<GrpcClientFactory>(GrpcClientFactory(
       getIt<SessionStorage>(),
     ))

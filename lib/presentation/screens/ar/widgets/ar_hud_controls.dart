@@ -26,7 +26,7 @@ class ArHudControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final kinds = ArObjectKind.values.where(allowed.contains).toList();
+    final kinds = ArObjectKind.values.where((k) => k.isHudLayer && allowed.contains(k)).toList();
     if (kinds.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -38,206 +38,238 @@ class ArHudControls extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Row(
         children: [
-          _ArHudDropdownChip(
-            icon: Icons.radar,
-            label: _radiusLabel(radiusMeters),
-            onOpen: (ctx) => _pickRadius(ctx),
+          Material(
+            color: Colors.transparent,
+            child: _RadiusMenu(
+              radiusMeters: radiusMeters,
+              onRadius: onRadius,
+            ),
           ),
           const SizedBox(width: 8),
-          _ArHudDropdownChip(
-            icon: Icons.layers_outlined,
-            label: layersLabel,
-            onOpen: (ctx) => _pickLayers(ctx, kinds),
+          Material(
+            color: Colors.transparent,
+            child: _LayersMenu(
+              kinds: kinds,
+              enabled: enabled,
+              soloKind: soloKind,
+              label: layersLabel,
+              onToggle: onToggle,
+              onSolo: onSolo,
+              onEnableAll: onEnableAll,
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Future<void> _pickRadius(BuildContext context) async {
-    final i = await _showHudMenu(
-      context,
-      items: [
-        for (var n = 0; n < ArSessionCubit.radiusPresetsM.length; n++)
-          _HudMenuOption(
-            index: n,
-            label: _radiusLabel(ArSessionCubit.radiusPresetsM[n]),
-            checked: (radiusMeters - ArSessionCubit.radiusPresetsM[n]).abs() < 0.5,
-          ),
-      ],
-    );
+class _RadiusMenu extends StatelessWidget {
+  const _RadiusMenu({
+    required this.radiusMeters,
+    required this.onRadius,
+  });
 
-    if (i == null) {
-      return;
-    }
+  final double radiusMeters;
+  final ValueChanged<double> onRadius;
 
-    onRadius(ArSessionCubit.radiusPresetsM[i]);
-  }
-
-  Future<void> _pickLayers(BuildContext context, List<ArObjectKind> kinds) async {
-    final options = <_HudMenuOption>[
-      for (var n = 0; n < kinds.length; n++)
-        _HudMenuOption(
-          index: n,
-          label: kinds[n].label,
-          checked: enabled.contains(kinds[n]),
-          solo: soloKind == kinds[n],
-        ),
-      _HudMenuOption(
-        index: kinds.length,
-        label: 'Все слои',
-        checked: soloKind == null && enabled.length == kinds.length,
-        dividerBefore: true,
-      ),
-      for (var n = 0; n < kinds.length; n++)
-        _HudMenuOption(
-          index: kinds.length + 1 + n,
-          label: 'Только ${kinds[n].label.toLowerCase()}',
-          checked: soloKind == kinds[n],
-          solo: soloKind == kinds[n],
-        ),
-    ];
-
-    final i = await _showHudMenu(context, items: options);
-    if (i == null) {
-      return;
-    }
-
-    if (i < kinds.length) {
-      onToggle(kinds[i]);
-    } else if (i == kinds.length) {
-      onEnableAll();
-    } else {
-      onSolo(kinds[i - kinds.length - 1]);
-    }
-  }
-
-  Future<int?> _showHudMenu(
-    BuildContext context, {
-    required List<_HudMenuOption> items,
-  }) {
-    final chipContext = context;
-    final box = chipContext.findRenderObject() as RenderBox?;
-    if (box == null) {
-      return Future.value(null);
-    }
-
-    final origin = box.localToGlobal(Offset.zero);
-    final entries = <PopupMenuEntry<int>>[];
-    for (final opt in items) {
-      if (opt.dividerBefore && entries.isNotEmpty) {
-        entries.add(const PopupMenuDivider(height: 8));
-      }
-
-      entries.add(
-        PopupMenuItem<int>(
-          value: opt.index,
-          height: 44,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 22,
-                child: opt.checked
-                  ? Icon(
-                    Icons.check,
-                    size: 18,
-                    color: opt.solo ? Colors.amber.shade800 : Colors.black87,
-                  )
-                  : null,
-              ),
-              Expanded(
-                child: Text(
-                  opt.label,
-                  style: TextStyle(
-                    fontWeight: opt.checked ? FontWeight.w600 : FontWeight.w500,
-                    color: opt.solo ? Colors.amber.shade900 : Colors.black87,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return showMenu<int>(
-      context: context,
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<double>(
+      tooltip: 'Радиус поиска',
       color: Colors.white.withValues(alpha: 0.96),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      position: RelativeRect.fromLTRB(
-        origin.dx,
-        origin.dy + box.size.height + 4,
-        origin.dx + box.size.width,
-        origin.dy,
+      offset: const Offset(0, 36),
+      onSelected: onRadius,
+      itemBuilder: (context) {
+        return [
+          for (final meters in ArSessionCubit.radiusPresetsM)
+            PopupMenuItem<double>(
+              value: meters,
+              child: _MenuRow(
+                label: _radiusLabel(meters),
+                checked: _isCurrentRadius(radiusMeters, meters),
+              ),
+            ),
+        ];
+      },
+      child: _HudChip(
+        icon: Icons.radar,
+        label: _radiusLabel(radiusMeters),
       ),
-      items: entries,
     );
-  }
-
-  static String _radiusLabel(double meters) {
-    if (meters >= 1000) {
-      return '${(meters / 1000).toStringAsFixed(meters >= 2000 ? 0 : 1)} км';
-    }
-
-    return '${meters.round()} м';
   }
 }
 
-class _ArHudDropdownChip extends StatelessWidget {
-  const _ArHudDropdownChip({
+class _LayersMenu extends StatelessWidget {
+  const _LayersMenu({
+    required this.kinds,
+    required this.enabled,
+    required this.soloKind,
+    required this.label,
+    required this.onToggle,
+    required this.onSolo,
+    required this.onEnableAll,
+  });
+
+  final List<ArObjectKind> kinds;
+  final Set<ArObjectKind> enabled;
+  final ArObjectKind? soloKind;
+  final String label;
+  final ValueChanged<ArObjectKind> onToggle;
+  final ValueChanged<ArObjectKind> onSolo;
+  final VoidCallback onEnableAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_LayerAction>(
+      tooltip: 'Слои AR',
+      color: Colors.white.withValues(alpha: 0.96),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      offset: const Offset(0, 36),
+      onSelected: (action) {
+        switch (action.kind) {
+          case _LayerActionKind.toggle:
+            onToggle(action.layer!);
+          case _LayerActionKind.all:
+            onEnableAll();
+          case _LayerActionKind.solo:
+            onSolo(action.layer!);
+        }
+      },
+      itemBuilder: (context) {
+        return [
+          for (final kind in kinds)
+            PopupMenuItem<_LayerAction>(
+              value: _LayerAction.toggle(kind),
+              child: _MenuRow(
+                label: kind.label,
+                checked: enabled.contains(kind),
+                solo: soloKind == kind,
+              ),
+            ),
+          const PopupMenuDivider(height: 8),
+          PopupMenuItem<_LayerAction>(
+            value: const _LayerAction.all(),
+            child: _MenuRow(
+              label: 'Все слои',
+              checked: soloKind == null && enabled.length == kinds.length,
+            ),
+          ),
+          for (final kind in kinds)
+            PopupMenuItem<_LayerAction>(
+              value: _LayerAction.solo(kind),
+              child: _MenuRow(
+                label: 'Только ${kind.label.toLowerCase()}',
+                checked: soloKind == kind,
+                solo: soloKind == kind,
+              ),
+            ),
+        ];
+      },
+      child: _HudChip(
+        icon: Icons.layers_outlined,
+        label: label,
+      ),
+    );
+  }
+}
+
+class _HudChip extends StatelessWidget {
+  const _HudChip({
     required this.icon,
     required this.label,
-    required this.onOpen,
   });
 
   final IconData icon;
   final String label;
-  final void Function(BuildContext context) onOpen;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onOpen(context),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: Colors.white),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-              const SizedBox(width: 2),
-              const Icon(Icons.arrow_drop_down, size: 18, color: Colors.white70),
-            ],
-          ),
-        ),
+          const SizedBox(width: 2),
+          const Icon(Icons.arrow_drop_down, size: 18, color: Colors.white70),
+        ],
       ),
     );
   }
 }
 
-class _HudMenuOption {
-  const _HudMenuOption({
-    required this.index,
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
     required this.label,
     required this.checked,
     this.solo = false,
-    this.dividerBefore = false,
   });
 
-  final int index;
   final String label;
   final bool checked;
   final bool solo;
-  final bool dividerBefore;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 22,
+          child: checked
+            ? Icon(
+              Icons.check,
+              size: 18,
+              color: solo ? Colors.amber.shade800 : Colors.black87,
+            )
+            : null,
+        ),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: checked ? FontWeight.w600 : FontWeight.w500,
+              color: solo ? Colors.amber.shade900 : Colors.black87,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+enum _LayerActionKind { toggle, all, solo }
+
+class _LayerAction {
+  const _LayerAction._(this.kind, this.layer);
+
+  const _LayerAction.toggle(ArObjectKind layer) : this._(_LayerActionKind.toggle, layer);
+
+  const _LayerAction.all() : this._(_LayerActionKind.all, null);
+
+  const _LayerAction.solo(ArObjectKind layer) : this._(_LayerActionKind.solo, layer);
+
+  final _LayerActionKind kind;
+  final ArObjectKind? layer;
+}
+
+bool _isCurrentRadius(double current, double preset) => (current - preset).abs() < 0.5;
+
+String _radiusLabel(double meters) {
+  if (meters >= 1000) {
+    return '${(meters / 1000).toStringAsFixed(meters % 1000 == 0 ? 0 : 1)} км';
+  }
+
+  return '${meters.round()} м';
 }

@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:katan/core/error/failures.dart';
+import 'package:katan/core/sensors/ar_world_tracker.dart';
+import 'package:katan/core/utils/ar_world_math.dart';
 import 'package:katan/core/utils/geo.dart';
 import 'package:katan/domain/entities/ar_object.dart';
 import 'package:katan/domain/repositories/ar_objects_repository.dart';
@@ -59,6 +61,20 @@ class ArSessionReady extends ArSessionState {
     this.indoorPeerType = 0,
     this.indoorPeerId = 0,
     this.indoorTitle = '',
+    this.worldPose = const ArWorldPose(
+      eastM: 0,
+      northM: 0,
+      upM: 1.55,
+      yawDeg: 0,
+      pitchDeg: 0,
+    ),
+    this.sensorsLive = false,
+    this.placement,
+    this.checkedIn = false,
+    this.originLat = 0,
+    this.originLng = 0,
+    this.schemeHint = '',
+    this.schemeImpact = '',
   });
 
   final double lat;
@@ -78,8 +94,18 @@ class ArSessionReady extends ArSessionState {
   final int indoorPeerType;
   final int indoorPeerId;
   final String indoorTitle;
+  final ArWorldPose worldPose;
+  final bool sensorsLive;
+  final ArPlacementDraft? placement;
+  final bool checkedIn;
+  final double originLat;
+  final double originLng;
+  final String schemeHint;
+  final String schemeImpact;
 
   bool get isIndoor => indoorPeerId > 0;
+
+  bool get worldLocked => isIndoor && indoorTitle.isNotEmpty;
 
   @override
   List<Object?> get props => [
@@ -100,6 +126,53 @@ class ArSessionReady extends ArSessionState {
     indoorPeerType,
     indoorPeerId,
     indoorTitle,
+    worldPose,
+    sensorsLive,
+    placement,
+    checkedIn,
+    originLat,
+    originLng,
+    schemeHint,
+    schemeImpact,
+  ];
+}
+
+class ArPlacementDraft extends Equatable {
+  const ArPlacementDraft({
+    required this.deviceId,
+    required this.localX,
+    required this.localY,
+    required this.localZ,
+    required this.headingDeg,
+    required this.plane,
+    this.peerType = 0,
+    this.peerId = 0,
+    this.reposition = false,
+  });
+
+  final int deviceId;
+  final double localX;
+  final double localY;
+  final double localZ;
+  final double headingDeg;
+  final String plane;
+  final int peerType;
+  final int peerId;
+  final bool reposition;
+
+  String get xyzLabel => '(${localX.toStringAsFixed(1)}, ${localY.toStringAsFixed(1)}, ${localZ.toStringAsFixed(1)})';
+
+  @override
+  List<Object?> get props => [
+    deviceId,
+    localX,
+    localY,
+    localZ,
+    headingDeg,
+    plane,
+    peerType,
+    peerId,
+    reposition,
   ];
 }
 
@@ -116,10 +189,14 @@ class ArSessionCubit extends Cubit<ArSessionState> {
   ArSessionCubit({
     required ArObjectsRepository objectsRepository,
     required this.allowedKinds,
+    this.canWriteNode = false,
+    this.canWriteCable = false,
   })  : _objectsRepository = objectsRepository, super(const ArSessionInitial());
 
   final ArObjectsRepository _objectsRepository;
   final Set<ArObjectKind> allowedKinds;
+  final bool canWriteNode;
+  final bool canWriteCable;
 
   StreamSubscription<Position>? _posSub;
   StreamSubscription<CompassEvent>? _compassSub;
@@ -137,6 +214,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
   Timer? _reloadDebounce;
   double? _cacheLat;
   double? _cacheLng;
+  double? _cacheRadius;
   DateTime? _cacheAt;
   int _indoorPeerType = 0;
   int _indoorPeerId = 0;
@@ -145,6 +223,13 @@ class ArSessionCubit extends Cubit<ArSessionState> {
   double _indoorOriginLng = 0;
   bool _hasIndoorOrigin = false;
   double _altitudeM = 0;
+  double _originAltitudeM = 0;
+  final _tracker = ArWorldTracker();
+  ArPlacementDraft? _placement;
+  bool _checkedIn = false;
+  final _peerOrigins = <String, (double, double, double)>{};
+  String _schemeHint = '';
+  String _schemeImpact = '';
 
   static const radiusPresetsM = [100.0, 250.0, 500.0, 1000.0, 2000.0];
   static const _weakGpsThresholdM = 35.0;
@@ -207,6 +292,9 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       _lng = pos.longitude;
       _accuracy = pos.accuracy;
       _altitudeM = pos.altitude;
+      await _tracker.start();
+      _tracker.updateHeading(_heading);
+      _syncWorldFromGps();
       await _reloadObjects(force: true);
       _emitReady();
     } catch (e) {
@@ -238,6 +326,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       _lng = pos.longitude;
       _accuracy = pos.accuracy;
       _altitudeM = pos.altitude;
+      _syncWorldFromGps();
       _scheduleReload();
       _emitReady();
     });
@@ -250,6 +339,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
           return;
         }
         _heading = h;
+        _tracker.updateHeading(h);
         _emitReady();
       });
     }
@@ -316,29 +406,36 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       return;
     }
 
-    final prev = _radiusM;
-    _radiusM = meters;
-    try {
-      await _reloadObjects(force: true);
-    } catch (_) {
-      _radiusM = prev;
+    final next = meters.clamp(radiusPresetsM.first, radiusPresetsM.last).toDouble();
+    if ((next - _radiusM).abs() < 0.5) {
+      return;
     }
+
+    _radiusM = next;
+    _emitReady();
+    await _reloadObjectsSafely(force: true);
     _emitReady();
   }
 
   void select(ArNearbyItem item) {
     _selected = item;
+    _schemeHint = '';
+    _schemeImpact = '';
     _emitReady();
+    unawaited(_loadSchemeHint(item.object.ref));
   }
 
   void clearSelection() {
     _selected = null;
+    _schemeHint = '';
+    _schemeImpact = '';
     _emitReady();
   }
 
   void startNavigation(ArNearbyItem item) {
     _navRef = item.object.ref;
     _selected = null;
+    _checkedIn = false;
     _emitReady();
   }
 
@@ -357,9 +454,25 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _indoorPeerType = peerType;
     _indoorPeerId = peerId;
     _indoorTitle = title;
-    _indoorOriginLat = originLat ?? _lat;
-    _indoorOriginLng = originLng ?? _lng;
-    _hasIndoorOrigin = true;
+    final cached = _peerOrigins[_peerKey(peerType, peerId)];
+    if (cached != null) {
+      _indoorOriginLat = cached.$1;
+      _indoorOriginLng = cached.$2;
+      _originAltitudeM = cached.$3;
+      _hasIndoorOrigin = true;
+    } else {
+      _indoorOriginLat = originLat ?? _lat;
+      _indoorOriginLng = originLng ?? _lng;
+      _originAltitudeM = _altitudeM;
+      _hasIndoorOrigin = true;
+      _peerOrigins[_peerKey(peerType, peerId)] = (_indoorOriginLat, _indoorOriginLng, _originAltitudeM);
+      _tracker.snapEnu(
+        eastM: 0,
+        northM: 0,
+        upM: ArWorldMath.eyeHeightM,
+      );
+    }
+    _syncWorldFromGps();
     _selected = null;
     await _reloadObjectsSafely();
     _emitReady();
@@ -380,9 +493,26 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     required int deviceId,
     int peerType = 0,
     int peerId = 0,
+    bool fromPlacement = false,
+    bool reposition = false,
   }) async {
     if (!_hasGeoCoords) {
       throw const ServerFailure('Нет GPS - нельзя закрыть устройство');
+    }
+
+    if (fromPlacement) {
+      await commitPlacement();
+      return;
+    }
+
+    if (_indoorPeerId > 0) {
+      beginPlacement(
+        deviceId: deviceId,
+        peerType: peerType > 0 ? peerType : _indoorPeerType,
+        peerId: peerId > 0 ? peerId : _indoorPeerId,
+        reposition: reposition,
+      );
+      return;
     }
 
     final covered = await _objectsRepository.setDeviceCover(
@@ -396,8 +526,120 @@ class ArSessionCubit extends Cubit<ArSessionState> {
         altitudeM: _altitudeM,
       ),
     );
-    _selected = null;
+    await _afterCover(covered, peerType, peerId);
+  }
 
+  void beginPlacement({
+    required int deviceId,
+    int peerType = 0,
+    int peerId = 0,
+    bool reposition = false,
+  }) {
+    if (!_hasIndoorOrigin) {
+      throw const ServerFailure('Нет якоря помещения - войдите внутрь или откалибруйте');
+    }
+
+    if (!_tracker.pose.canPlace) {
+      throw const ServerFailure('Трекинг слишком слабый - не закрываю вслепую');
+    }
+
+    final hit = ArWorldMath.hitTest(camera: _tracker.pose);
+    _placement = ArPlacementDraft(
+      deviceId: deviceId,
+      localX: hit.localX,
+      localY: hit.localY,
+      localZ: hit.localZ,
+      headingDeg: hit.headingDeg,
+      plane: hit.plane,
+      peerType: peerType > 0 ? peerType : _indoorPeerType,
+      peerId: peerId > 0 ? peerId : _indoorPeerId,
+      reposition: reposition,
+    );
+    _selected = null;
+    _emitReady();
+  }
+
+  void refreshPlacementHit() {
+    final p = _placement;
+    if (p == null || !_tracker.pose.canPlace) {
+      return;
+    }
+
+    final hit = ArWorldMath.hitTest(camera: _tracker.pose);
+    _placement = ArPlacementDraft(
+      deviceId: p.deviceId,
+      localX: hit.localX,
+      localY: hit.localY,
+      localZ: hit.localZ,
+      headingDeg: hit.headingDeg,
+      plane: hit.plane,
+      peerType: p.peerType,
+      peerId: p.peerId,
+      reposition: p.reposition,
+    );
+    _emitReady();
+  }
+
+  void nudgePlacement({double dx = 0, double dy = 0, double dz = 0, double dHeading = 0}) {
+    final p = _placement;
+    if (p == null) {
+      return;
+    }
+
+    _placement = ArPlacementDraft(
+      deviceId: p.deviceId,
+      localX: ArWorldMath.snapMeters(p.localX + dx),
+      localY: ArWorldMath.snapMeters(p.localY + dy),
+      localZ: ArWorldMath.snapMeters((p.localZ + dz).clamp(0, 8)),
+      headingDeg: ArWorldMath.snapHeadingDeg(p.headingDeg + dHeading),
+      plane: p.plane,
+      peerType: p.peerType,
+      peerId: p.peerId,
+      reposition: p.reposition,
+    );
+    _emitReady();
+  }
+
+  void cancelPlacement() {
+    _placement = null;
+    _emitReady();
+  }
+
+  Future<void> commitPlacement() async {
+    final p = _placement;
+    if (p == null) {
+      throw const ServerFailure('Нет точки закрытия');
+    }
+
+    if (!_tracker.pose.canPlace) {
+      throw const ServerFailure('Трекинг слишком слабый - не закрываю вслепую');
+    }
+
+    if (p.peerType == 0 || p.peerId == 0) {
+      throw const ServerFailure('Нет якоря peer - войдите внутрь сооружения');
+    }
+
+    final covered = await _objectsRepository.setDeviceCover(
+      deviceId: p.deviceId,
+      params: ArCoverParams(
+        lat: _lat,
+        lng: _lng,
+        headingDeg: p.headingDeg,
+        peerType: p.peerType,
+        peerId: p.peerId,
+        hasLocal: true,
+        localX: p.localX,
+        localY: p.localY,
+        localZ: p.localZ,
+        altitudeM: _altitudeM,
+      ),
+    );
+    _placement = null;
+    await _afterCover(covered, p.peerType, p.peerId);
+  }
+
+  Future<void> _afterCover(ArMapObject covered, int peerType, int peerId) async {
+    _selected = null;
     final pType = covered.peerType > 0 ? covered.peerType : peerType;
     final pId = covered.peerId > 0 ? covered.peerId : peerId;
     if (pType > 0 && pId > 0) {
@@ -415,6 +657,71 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _emitReady();
   }
 
+  void calibrateAtAnchor() {
+    if (_indoorPeerId <= 0) {
+      return;
+    }
+
+    _indoorOriginLat = _lat;
+    _indoorOriginLng = _lng;
+    _originAltitudeM = _altitudeM;
+    _hasIndoorOrigin = true;
+    _peerOrigins[_peerKey(_indoorPeerType, _indoorPeerId)] = (
+      _indoorOriginLat,
+      _indoorOriginLng,
+      _originAltitudeM,
+    );
+    _tracker.snapEnu(
+      eastM: 0,
+      northM: 0,
+      upM: ArWorldMath.eyeHeightM,
+    );
+    _emitReady();
+  }
+
+  List<ArNearbyItem> nearbyCandidates({ArObjectKind? kind}) {
+    final items = _computeNearby();
+    if (kind == null) {
+      return items.take(8).toList();
+    }
+
+    return items.where((e) => e.object.kind == kind).take(8).toList();
+  }
+
+  void _syncWorldFromGps() {
+    if (_indoorPeerId > 0 && _hasIndoorOrigin) {
+      _tracker.applyGpsEnu(
+        originLat: _indoorOriginLat,
+        originLng: _indoorOriginLng,
+        lat: _lat,
+        lng: _lng,
+        accuracyM: _accuracy,
+        altitudeDeltaM: _altitudeM - _originAltitudeM,
+      );
+    } else {
+      _tracker.applyGpsEnu(
+        originLat: _lat,
+        originLng: _lng,
+        lat: _lat,
+        lng: _lng,
+        accuracyM: _accuracy,
+      );
+      _tracker.snapEnu(
+        eastM: 0,
+        northM: 0,
+        upM: ArWorldMath.eyeHeightM,
+        quality: _accuracy <= 8
+          ? ArTrackingQuality.good
+          : _accuracy <= 35
+            ? ArTrackingQuality.weak
+            : ArTrackingQuality.lost,
+        sigmaCm: (_accuracy * 100).clamp(20, 2500),
+      );
+    }
+  }
+
+  String _peerKey(int type, int id) => '$type:$id';
+
   void _ensureIndoorOriginFromCover(ArMapObject covered) {
     if (_hasIndoorOrigin) {
       return;
@@ -424,19 +731,23 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     if (horiz < 0.05) {
       _indoorOriginLat = _lat;
       _indoorOriginLng = _lng;
-      _hasIndoorOrigin = true;
-      return;
+    } else {
+      final back = GeoMath.offsetMeters(
+        lat: _lat,
+        lng: _lng,
+        distanceM: horiz,
+        bearingDeg: GeoMath.bearingFromEnu(-covered.localX, -covered.localY),
+      );
+      _indoorOriginLat = back.$1;
+      _indoorOriginLng = back.$2;
     }
-
-    final back = GeoMath.offsetMeters(
-      lat: _lat,
-      lng: _lng,
-      distanceM: horiz,
-      bearingDeg: GeoMath.bearingFromEnu(-covered.localX, -covered.localY),
-    );
-    _indoorOriginLat = back.$1;
-    _indoorOriginLng = back.$2;
     _hasIndoorOrigin = true;
+    _originAltitudeM = _altitudeM;
+    _peerOrigins[_peerKey(_indoorPeerType > 0 ? _indoorPeerType : covered.peerType, _indoorPeerId > 0 ? _indoorPeerId : covered.peerId)] = (
+      _indoorOriginLat,
+      _indoorOriginLng,
+      _originAltitudeM,
+    );
   }
 
   Future<void> uncoverDevice(int deviceId) async {
@@ -444,6 +755,58 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _selected = null;
     await _reloadObjectsSafely();
     _emitReady();
+  }
+
+  Future<void> setNodeHere(int nodeId) async {
+    if (!_hasGeoCoords) {
+      throw const ServerFailure('Нет GPS');
+    }
+
+    if (!canWriteNode) {
+      throw const ServerFailure('Нет права node|write');
+    }
+
+    await _objectsRepository.setNodeHere(nodeId: nodeId, lat: _lat, lng: _lng);
+    await _reloadObjectsSafely(force: true);
+    _emitReady();
+  }
+
+  Future<void> addCableReserve({required int cableId, required int meter, String note = ''}) async {
+    if (!_hasGeoCoords) {
+      throw const ServerFailure('Нет GPS');
+    }
+
+    if (!canWriteCable) {
+      throw const ServerFailure('Нет права cable|write');
+    }
+
+    await _objectsRepository.addCableReserve(
+      cableId: cableId,
+      lat: _lat,
+      lng: _lng,
+      meter: meter,
+      note: note,
+    );
+    await _reloadObjectsSafely(force: true);
+    _emitReady();
+  }
+
+  Future<void> _loadSchemeHint(ArObjectRef ref) async {
+    if (ref.kind != ArObjectKind.device &&
+        ref.kind != ArObjectKind.node &&
+        ref.kind != ArObjectKind.cable) {
+      return;
+    }
+
+    try {
+      final hint = await _objectsRepository.schemeHint(ref);
+      if (_selected?.object.ref != ref) {
+        return;
+      }
+      _schemeHint = hint.$1;
+      _schemeImpact = hint.$2;
+      _emitReady();
+    } catch (_) {}
   }
 
   Future<ArNearbyItem?> resolveRef(ArObjectRef ref) async {
@@ -487,7 +850,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       return;
     }
 
-    if (!force && _indoorPeerId == 0 && _cacheAt != null && _cacheLat != null && _cacheLng != null && _all.isNotEmpty) {
+    if (!force && _indoorPeerId == 0 && _cacheAt != null && _cacheLat != null && _cacheLng != null && _cacheRadius != null && _all.isNotEmpty) {
       final age = DateTime.now().difference(_cacheAt!);
       final moved = GeoMath.distanceMeters(
         lat1: _cacheLat!,
@@ -495,7 +858,8 @@ class ArSessionCubit extends Cubit<ArSessionState> {
         lat2: _lat,
         lng2: _lng,
       );
-      if (age < _cacheMaxAge && moved < _cacheMoveM) {
+      final sameRadius = (_cacheRadius! - _radiusM).abs() < 0.5;
+      if (age < _cacheMaxAge && moved < _cacheMoveM && sameRadius) {
         return;
       }
     }
@@ -508,7 +872,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       : null;
     final kinds = indoor != null
       ? {ArObjectKind.device}
-      : (_enabled.isEmpty ? allowedKinds : _enabled);
+      : allowedKinds;
     _all = await _objectsRepository.loadAround(
       lat: _lat,
       lng: _lng,
@@ -518,6 +882,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     );
     _cacheLat = _lat;
     _cacheLng = _lng;
+    _cacheRadius = _radiusM;
     _cacheAt = DateTime.now();
   }
 
@@ -531,7 +896,12 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     final indoor = _indoorPeerId > 0;
     final filtered = indoor
       ? _all
-      : _all.where((o) => _enabled.contains(o.kind)).toList();
+      : _all.where((o) {
+          if (o.kind == ArObjectKind.coverage) {
+            return false;
+          }
+          return _enabled.contains(o.kind.filterKind);
+        }).toList();
     final items = filtered.map(_toNearbyItem).toList();
 
     items.sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
@@ -548,18 +918,13 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     var dist = 0.0;
 
     if (indoor && o.coveredInside) {
-      final (userX, userY) = GeoMath.enuMeters(
-        originLat: _hasIndoorOrigin ? _indoorOriginLat : _lat,
-        originLng: _hasIndoorOrigin ? _indoorOriginLng : _lng,
-        lat: _lat,
-        lng: _lng,
-      );
-      final dx = o.localX - userX;
-      final dy = o.localY - userY;
+      final dx = o.localX - _tracker.pose.eastM;
+      final dy = o.localY - _tracker.pose.northM;
+      final dz = o.localZ - _tracker.pose.upM;
       dist = GeoMath.hypot(dx, dy);
-      if (dist < 0.8) {
+      if (dist < 0.4) {
+        dist = 0.4 + dz.abs() * 0.05;
         bearing = o.headingDeg;
-        dist = 2.0 + o.localZ.abs() * 0.05;
       } else {
         bearing = GeoMath.bearingFromEnu(dx, dy);
       }
@@ -670,9 +1035,12 @@ class ArSessionCubit extends Cubit<ArSessionState> {
           }
         }
       }
-      if (nav != null && nav.distanceMeters < 8) {
-        _navRef = null;
-        nav = null;
+      if (nav != null && nav.distanceMeters < 12) {
+        _checkedIn = true;
+        if (nav.distanceMeters < 8) {
+          _navRef = null;
+          nav = null;
+        }
       }
     }
 
@@ -694,6 +1062,14 @@ class ArSessionCubit extends Cubit<ArSessionState> {
       indoorPeerType: _indoorPeerType,
       indoorPeerId: _indoorPeerId,
       indoorTitle: _indoorTitle,
+      worldPose: _tracker.pose,
+      sensorsLive: _tracker.sensorsLive,
+      placement: _placement,
+      checkedIn: _checkedIn,
+      originLat: _hasIndoorOrigin ? _indoorOriginLat : _lat,
+      originLng: _hasIndoorOrigin ? _indoorOriginLng : _lng,
+      schemeHint: _schemeHint,
+      schemeImpact: _schemeImpact,
     ));
   }
 
@@ -702,6 +1078,7 @@ class ArSessionCubit extends Cubit<ArSessionState> {
     _reloadDebounce?.cancel();
     await _posSub?.cancel();
     await _compassSub?.cancel();
+    await _tracker.stop();
     return super.close();
   }
 }

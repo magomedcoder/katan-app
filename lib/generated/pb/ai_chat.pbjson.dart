@@ -902,6 +902,14 @@ const AiChatStatusResponse$json = {
       '8': {},
       '10': 'imageUploadAvailable'
     },
+    {
+      '1': 'node_edit_integrity_prompt_enabled',
+      '3': 15,
+      '4': 1,
+      '5': 8,
+      '8': {},
+      '10': 'nodeEditIntegrityPromptEnabled'
+    },
   ],
 };
 
@@ -929,7 +937,10 @@ final $typed_data.Uint8List aiChatStatusResponseDescriptor = $convert.base64Deco
     'MSZQoPcHJvYWN0aXZlX2NoaXBzGA0gAygLMhoua2F0YW4uQWlDaGF0UHJvYWN0aXZlQ2hpcEIg'
     'kkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVSDnByb2FjdGl2ZUNoaXBzElYKFmltYW'
     'dlX3VwbG9hZF9hdmFpbGFibGUYDiABKAhCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3Q'
-    'uNC1UhRpbWFnZVVwbG9hZEF2YWlsYWJsZQ==');
+    'uNC1UhRpbWFnZVVwbG9hZEF2YWlsYWJsZRK6AQoibm9kZV9lZGl0X2ludGVncml0eV9wcm9tcH'
+    'RfZW5hYmxlZBgPIAEoCEJukkFrMmnQv9GA0LXQtNC70LDQs9Cw0YLRjCDQv9GA0L7QstC10YDQ'
+    'utGDINGB0LLRj9C30LXQuSDRg9C30LvQsCDRh9C10YDQtdC3IEFJINC/0L7RgdC70LUg0YHQvt'
+    'GF0YDQsNC90LXQvdC40Y9SHm5vZGVFZGl0SW50ZWdyaXR5UHJvbXB0RW5hYmxlZA==');
 
 @$core.Deprecated('Use aiChatGetSessionsRequestDescriptor instead')
 const AiChatGetSessionsRequest$json = {

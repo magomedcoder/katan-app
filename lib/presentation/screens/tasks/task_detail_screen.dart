@@ -10,6 +10,7 @@ import 'package:katan/core/utils/task_object_types.dart';
 import 'package:katan/core/utils/task_status.dart';
 import 'package:katan/domain/entities/account.dart';
 import 'package:katan/domain/entities/ai_chat.dart';
+import 'package:katan/domain/entities/ar_object.dart';
 import 'package:katan/domain/entities/file_attachment.dart';
 import 'package:katan/domain/entities/task.dart';
 import 'package:katan/domain/entities/task_comment.dart';
@@ -24,6 +25,7 @@ import 'package:katan/domain/usecases/delete_task_comment_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_file_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_label_usecase.dart';
 import 'package:katan/domain/usecases/delete_task_usecase.dart';
+import 'package:katan/domain/usecases/get_account_usecase.dart';
 import 'package:katan/domain/usecases/get_ai_chat_status_usecase.dart';
 import 'package:katan/domain/usecases/get_task_comments_usecase.dart';
 import 'package:katan/domain/usecases/get_task_files_usecase.dart';
@@ -39,6 +41,7 @@ import 'package:katan/domain/usecases/upload_task_file_usecase.dart';
 import 'package:katan/presentation/cubit/auth_cubit.dart';
 import 'package:katan/presentation/cubit/task_detail_cubit.dart';
 import 'package:katan/presentation/screens/ai_chat/ai_chat_screen.dart';
+import 'package:katan/presentation/screens/ar/ar_session_screen.dart';
 import 'package:katan/presentation/screens/chat/chat_room_screen.dart';
 import 'package:katan/presentation/screens/chat/widgets/chat_avatar.dart';
 import 'package:katan/presentation/screens/chat/widgets/chat_user_picker_sheet.dart';
@@ -435,6 +438,28 @@ class _TaskDetailViewState extends State<_TaskDetailView>
                       builder: (_) => TaskDetailScreen(taskId: taskId),
                     ),
                   ),
+                  onOpenAr: () async {
+                    final kind = TaskObjectTypes.arKindForTaskObject(task.objectType);
+                    if (kind == null || task.objectId <= 0) {
+                      return;
+                    }
+
+                    try {
+                      final account = await getIt<GetAccountUseCase>()();
+                      if (!context.mounted) {
+                        return;
+                      }
+                      
+                      await Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ArSessionScreen(
+                            account: account,
+                            initialRef: ArObjectRef(kind: kind, id: task.objectId),
+                          ),
+                        ),
+                      );
+                    } catch (_) {}
+                  },
                 ),
                 _CommentsTab(
                   state: state,
@@ -622,6 +647,7 @@ class _OverviewTab extends StatelessWidget {
     required this.onEditTags,
     required this.onCreateSubtask,
     required this.onOpenTask,
+    this.onOpenAr,
   });
 
   final TaskDetailLoaded state;
@@ -631,6 +657,7 @@ class _OverviewTab extends StatelessWidget {
   final VoidCallback onEditTags;
   final VoidCallback onCreateSubtask;
   final ValueChanged<int> onOpenTask;
+  final VoidCallback? onOpenAr;
 
   @override
   Widget build(BuildContext context) {
@@ -673,10 +700,12 @@ class _OverviewTab extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                 ),
               if (objectLabel.isNotEmpty)
-                Chip(
-                  avatar: const Icon(Icons.link, size: 16),
+                ActionChip(
+                  avatar: const Icon(Icons.view_in_ar, size: 16),
                   label: Text(objectLabel),
-                  visualDensity: VisualDensity.compact,
+                  onPressed: TaskObjectTypes.arKindForTaskObject(task.objectType) != null
+                    ? onOpenAr
+                    : null,
                 ),
             ],
           ),

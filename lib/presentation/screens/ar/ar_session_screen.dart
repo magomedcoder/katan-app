@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/di.dart';
 import 'package:katan/app/theme.dart';
+import 'package:katan/core/ar_launch_bus.dart';
 import 'package:katan/core/error/failures.dart';
 import 'package:katan/domain/entities/account.dart';
+import 'package:katan/domain/entities/ar_object.dart';
 import 'package:katan/domain/repositories/ar_objects_repository.dart';
 import 'package:katan/presentation/cubit/ar_session_cubit.dart';
 import 'package:katan/presentation/screens/ar/ar_qr_scan_screen.dart';
@@ -14,6 +16,7 @@ import 'package:katan/presentation/screens/ar/widgets/ar_camera_overlay.dart';
 import 'package:katan/presentation/screens/ar/widgets/ar_hud_controls.dart';
 import 'package:katan/presentation/screens/ar/widgets/ar_nav_banner.dart';
 import 'package:katan/presentation/screens/ar/widgets/ar_nearby_sheet.dart';
+import 'package:katan/presentation/screens/ar/widgets/ar_placement_bar.dart';
 import 'package:katan/presentation/screens/ar/widgets/ar_preview_sheet.dart';
 import 'package:katan/presentation/widgets/error_view.dart';
 
@@ -22,10 +25,12 @@ class ArSessionScreen extends StatefulWidget {
     super.key,
     required this.account,
     this.isActive = true,
+    this.initialRef,
   });
 
   final Account account;
   final bool isActive;
+  final ArObjectRef? initialRef;
 
   @override
   State<ArSessionScreen> createState() => _ArSessionScreenState();
@@ -40,7 +45,15 @@ class _ArSessionScreenState extends State<ArSessionScreen> {
     _cubit = ArSessionCubit(
       objectsRepository: getIt<ArObjectsRepository>(),
       allowedKinds: widget.account.arAllowedKinds,
-    )..start();
+      canWriteNode: widget.account.hasPermission('node|write'),
+      canWriteCable: widget.account.hasPermission('cable|write'),
+    );
+    unawaited(_cubit.start().then((_) {
+      final ref = widget.initialRef ?? getIt<ArLaunchBus>().take();
+      if (ref != null) {
+        unawaited(_cubit.resolveRef(ref));
+      }
+    }));
     if (!widget.isActive) {
       unawaited(_cubit.setActive(false));
     }
@@ -167,28 +180,88 @@ class _ArSessionViewState extends State<_ArSessionView> {
       return;
     }
 
-    final parsed = parseArQrPayload(raw);
-    if (parsed.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(parsed.error!)));
+    final mac = RegExp(r'([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}').firstMatch(raw);
+    if (mac != null) {
+      await _showCandidates(
+        kind: ArObjectKind.customer,
+        title: 'MAC ${mac.group(0)} - ближайшие абоненты',
+      );
       return;
     }
 
-    final ref = parsed.ref!;
+    final parsed = parseArQrPayload(raw);
+    if (parsed.error != null || parsed.ref == null) {
+      await _showCandidates(title: parsed.error ?? 'Неоднозначный скан - выберите объект рядом');
+      return;
+    }
+
     try {
-      final item = await context.read<ArSessionCubit>().resolveRef(ref);
+      final item = await context.read<ArSessionCubit>().resolveRef(parsed.ref!);
       if (!mounted) {
         return;
       }
-
       if (item == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Объект не найден или нет прав')));
+        await _showCandidates(title: 'Объект QR не найден - кандидаты рядом');
       }
     } on Failure catch (e) {
       if (!mounted) {
         return;
       }
-
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
+  Future<void> _showCandidates({ArObjectKind? kind, required String title}) async {
+    final cubit = context.read<ArSessionCubit>();
+    final items = cubit.nearbyCandidates(kind: kind);
+    if (!mounted) {
+      return;
+    }
+
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(title)));
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(title, style: Theme.of(ctx).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              for (final item in items.take(6))
+                ListTile(
+                  title: Text(item.object.title),
+                  subtitle: Text(item.object.kind.label),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    cubit.select(item);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _runAction(Future<void> action, {String? ok, required String fail}) async {
+    try {
+      await action;
+      if (ok != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok)));
+      }
+    } catch (e) {
+      if (mounted) {
+        final text = e is Failure ? e.message : fail;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+      }
     }
   }
 
@@ -235,6 +308,7 @@ class _ArSessionViewState extends State<_ArSessionView> {
             ),
             ArSessionReady(
               :final nearby,
+              :final objects,
               :final enabledKinds,
               :final soloKind,
               :final headingDegrees,
@@ -247,6 +321,13 @@ class _ArSessionViewState extends State<_ArSessionView> {
               :final indoorTitle,
               :final indoorPeerId,
               :final radiusMeters,
+              :final worldPose,
+              :final sensorsLive,
+              :final placement,
+              :final checkedIn,
+              :final selected,
+              :final originLat,
+              :final originLng,
             ) =>
               Stack(
                 fit: StackFit.expand,
@@ -261,6 +342,15 @@ class _ArSessionViewState extends State<_ArSessionView> {
                     headingDegrees: headingDegrees,
                     userLat: lat,
                     userLng: lng,
+                    pose: worldPose,
+                    indoor: indoorPeerId > 0,
+                    originLat: originLat,
+                    originLng: originLng,
+                    placement: placement,
+                    selected: selected,
+                    polygons: objects
+                      .where((o) => o.kind == ArObjectKind.coverage && enabledKinds.contains(ArObjectKind.node))
+                      .toList(),
                   ),
                   SafeArea(
                     child: Column(
@@ -271,12 +361,36 @@ class _ArSessionViewState extends State<_ArSessionView> {
                           gpsWeak: gpsWeak,
                           paused: trackingPaused,
                           indoor: indoorPeerId > 0,
+                          trackingLabel: indoorPeerId > 0
+                            ? worldPose.hudLabel
+                            : null,
+                          compassMode: !sensorsLive,
+                          checkedIn: checkedIn,
                           onScanQr: _scanQr,
                         ),
-                        if (indoorPeerId > 0)
+                        if (placement != null)
+                          ArPlacementBar(
+                            draft: placement,
+                            onHit: () => context.read<ArSessionCubit>().refreshPlacementHit(),
+                            onNudge: ({dx = 0, dy = 0, dz = 0, dHeading = 0}) =>
+                              context.read<ArSessionCubit>().nudgePlacement(
+                                dx: dx,
+                                dy: dy,
+                                dz: dz,
+                                dHeading: dHeading,
+                              ),
+                            onCommit: () => _runAction(
+                              context.read<ArSessionCubit>().commitPlacement(),
+                              ok: 'Записано XYZ',
+                              fail: 'Не удалось записать',
+                            ),
+                            onCancel: () => context.read<ArSessionCubit>().cancelPlacement(),
+                          )
+                        else if (indoorPeerId > 0)
                           _IndoorBar(
                             title: indoorTitle,
                             onExit: () => context.read<ArSessionCubit>().exitIndoor(),
+                            onCalibrate: () => context.read<ArSessionCubit>().calibrateAtAnchor(),
                           )
                         else ...[
                           if (navTarget != null)
@@ -366,6 +480,9 @@ class _TopHud extends StatelessWidget {
     required this.paused,
     required this.onScanQr,
     this.indoor = false,
+    this.trackingLabel,
+    this.compassMode = false,
+    this.checkedIn = false,
   });
 
   final double heading;
@@ -373,6 +490,9 @@ class _TopHud extends StatelessWidget {
   final bool gpsWeak;
   final bool paused;
   final bool indoor;
+  final String? trackingLabel;
+  final bool compassMode;
+  final bool checkedIn;
   final VoidCallback onScanQr;
 
   @override
@@ -399,7 +519,18 @@ class _TopHud extends StatelessWidget {
               ],
               if (indoor) ...[
                 const SizedBox(width: 8),
-                const _HudChip(icon: Icons.meeting_room, label: 'внутри'),
+                _HudChip(
+                  icon: Icons.meeting_room,
+                  label: trackingLabel ?? 'внутри',
+                ),
+              ],
+              if (compassMode) ...[
+                const SizedBox(width: 8),
+                const _HudChip(icon: Icons.explore, label: 'режим компаса'),
+              ],
+              if (checkedIn) ...[
+                const SizedBox(width: 8),
+                const _HudChip(icon: Icons.beenhere, label: 'на месте'),
               ],
               const Spacer(),
               _HudChip(
@@ -443,10 +574,12 @@ class _IndoorBar extends StatelessWidget {
   const _IndoorBar({
     required this.title,
     required this.onExit,
+    required this.onCalibrate,
   });
 
   final String title;
   final VoidCallback onExit;
+  final VoidCallback onCalibrate;
 
   @override
   Widget build(BuildContext context) {
@@ -464,6 +597,11 @@ class _IndoorBar extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+          ),
+          TextButton.icon(
+            onPressed: onCalibrate,
+            icon: const Icon(Icons.my_location, size: 16, color: Colors.white),
+            label: const Text('Я у входа', style: TextStyle(color: Colors.white)),
           ),
           TextButton.icon(
             onPressed: onExit,

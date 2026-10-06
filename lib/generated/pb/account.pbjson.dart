@@ -127,6 +127,15 @@ const GetAccountResponse$json = {
       '8': {},
       '10': 'allowedLoginIps'
     },
+    {
+      '1': 'interface_prefs',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.AccountInterfacePrefs',
+      '8': {},
+      '10': 'interfacePrefs'
+    },
   ],
   '3': [GetAccountResponse_Active$json, GetAccountResponse_Notification$json],
 };
@@ -175,18 +184,94 @@ final $typed_data.Uint8List getAccountResponseDescriptor = $convert.base64Decode
     '0L7RgNC+INC+0L/QuNGB0LDQvdC40LVSDG5vdGlmaWNhdGlvbhKNAQoRYWxsb3dlZF9sb2dpbl'
     '9pcHMYByADKAlCYZJBXjJc0KDQsNC30YDQtdGI0ZHQvdC90YvQtSBJUC9DSURSINC00LvRjyDQ'
     'stGF0L7QtNCwLCDQv9GD0YHRgtC+IC0g0LHQtdC3INC+0LPRgNCw0L3QuNGH0LXQvdC40LlSD2'
-    'FsbG93ZWRMb2dpbklwcxqpBAoGQWN0aXZlEjoKB2FkZHJlc3MYASABKANCIJJBHTIb0YHQutC+'
-    '0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdhZGRyZXNzEjYKBW5vZGVzGAIgAygJQiCSQR0yG9GB0L'
-    'rQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIFbm9kZXMSOAoGY2FibGVzGAMgAygJQiCSQR0yG9GB'
-    '0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIGY2FibGVzEkUKDWNvdmVyYWdlX2FyZWEYBCADKA'
-    'lCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ugxjb3ZlcmFnZUFyZWESPAoIcG9s'
-    'eWdvbnMYBSADKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ughwb2x5Z29ucx'
-    'I+CglidWlsZGluZ3MYBiADKAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1Ugli'
-    'dWlsZGluZ3MSNAoEdGFncxgHIAMoA0IgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40L'
-    'VSBHRhZ3MSNAoEbW9kZRgIIAEoBUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVS'
-    'BG1vZGUSQAoKb2JqZWN0Tm9kZRgJIAEoBUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvd'
-    'C40LVSCm9iamVjdE5vZGUaSgoMTm90aWZpY2F0aW9uEjoKB21lc3NhZ2UYASABKAlCIJJBHTIb'
-    '0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgdtZXNzYWdl');
+    'FsbG93ZWRMb2dpbklwcxKyAQoPaW50ZXJmYWNlX3ByZWZzGAggASgLMhwua2F0YW4uQWNjb3Vu'
+    'dEludGVyZmFjZVByZWZzQmuSQWgyZtCf0LDRgNCw0LzQtdGC0YDRiyDQuNC90YLQtdGA0YTQtd'
+    'C50YHQsCDQsNC60LrQsNGD0L3RgtCwICjRgdC70L7QuCDQutCw0YDRgtGLINC/0L4g0YPQvNC+'
+    '0LvRh9Cw0L3QuNGOKVIOaW50ZXJmYWNlUHJlZnMaqQQKBkFjdGl2ZRI6CgdhZGRyZXNzGAEgAS'
+    'gDQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIHYWRkcmVzcxI2CgVub2RlcxgC'
+    'IAMoCUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVSBW5vZGVzEjgKBmNhYmxlcx'
+    'gDIAMoCUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvdC40LVSBmNhYmxlcxJFCg1jb3Zl'
+    'cmFnZV9hcmVhGAQgAygJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIMY292ZX'
+    'JhZ2VBcmVhEjwKCHBvbHlnb25zGAUgAygJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC9'
+    '0LjQtVIIcG9seWdvbnMSPgoJYnVpbGRpbmdzGAYgAygJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9'
+    'C40YHQsNC90LjQtVIJYnVpbGRpbmdzEjQKBHRhZ3MYByADKANCIJJBHTIb0YHQutC+0YDQviDQ'
+    'vtC/0LjRgdCw0L3QuNC1UgR0YWdzEjQKBG1vZGUYCCABKAVCIJJBHTIb0YHQutC+0YDQviDQvt'
+    'C/0LjRgdCw0L3QuNC1UgRtb2RlEkAKCm9iamVjdE5vZGUYCSABKAVCIJJBHTIb0YHQutC+0YDQ'
+    'viDQvtC/0LjRgdCw0L3QuNC1UgpvYmplY3ROb2RlGkoKDE5vdGlmaWNhdGlvbhI6CgdtZXNzYW'
+    'dlGAEgASgJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIHbWVzc2FnZQ==');
+
+@$core.Deprecated('Use accountMapDisplayDefaultsDescriptor instead')
+const AccountMapDisplayDefaults$json = {
+  '1': 'AccountMapDisplayDefaults',
+  '2': [
+    {'1': 'nodes', '3': 1, '4': 3, '5': 9, '10': 'nodes'},
+    {'1': 'cables', '3': 2, '4': 3, '5': 9, '10': 'cables'},
+    {'1': 'coverage_area', '3': 3, '4': 3, '5': 9, '10': 'coverageArea'},
+    {'1': 'polygons', '3': 4, '4': 3, '5': 9, '10': 'polygons'},
+    {'1': 'buildings', '3': 5, '4': 3, '5': 9, '10': 'buildings'},
+    {'1': 'tags', '3': 6, '4': 3, '5': 3, '10': 'tags'},
+  ],
+};
+
+/// Descriptor for `AccountMapDisplayDefaults`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List accountMapDisplayDefaultsDescriptor = $convert.base64Decode(
+    'ChlBY2NvdW50TWFwRGlzcGxheURlZmF1bHRzEhQKBW5vZGVzGAEgAygJUgVub2RlcxIWCgZjYW'
+    'JsZXMYAiADKAlSBmNhYmxlcxIjCg1jb3ZlcmFnZV9hcmVhGAMgAygJUgxjb3ZlcmFnZUFyZWES'
+    'GgoIcG9seWdvbnMYBCADKAlSCHBvbHlnb25zEhwKCWJ1aWxkaW5ncxgFIAMoCVIJYnVpbGRpbm'
+    'dzEhIKBHRhZ3MYBiADKANSBHRhZ3M=');
+
+@$core.Deprecated('Use accountInterfacePrefsDescriptor instead')
+const AccountInterfacePrefs$json = {
+  '1': 'AccountInterfacePrefs',
+  '2': [
+    {
+      '1': 'map_display',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.AccountMapDisplayDefaults',
+      '10': 'mapDisplay'
+    },
+    {'1': 'hide_metrika', '3': 2, '4': 1, '5': 8, '10': 'hideMetrika'},
+  ],
+};
+
+/// Descriptor for `AccountInterfacePrefs`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List accountInterfacePrefsDescriptor = $convert.base64Decode(
+    'ChVBY2NvdW50SW50ZXJmYWNlUHJlZnMSQQoLbWFwX2Rpc3BsYXkYASABKAsyIC5rYXRhbi5BY2'
+    'NvdW50TWFwRGlzcGxheURlZmF1bHRzUgptYXBEaXNwbGF5EiEKDGhpZGVfbWV0cmlrYRgCIAEo'
+    'CFILaGlkZU1ldHJpa2E=');
+
+@$core.Deprecated('Use editInterfacePrefsRequestDescriptor instead')
+const EditInterfacePrefsRequest$json = {
+  '1': 'EditInterfacePrefsRequest',
+  '2': [
+    {
+      '1': 'prefs',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.AccountInterfacePrefs',
+      '8': {},
+      '10': 'prefs'
+    },
+  ],
+};
+
+/// Descriptor for `EditInterfacePrefsRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List editInterfacePrefsRequestDescriptor = $convert.base64Decode(
+    'ChlFZGl0SW50ZXJmYWNlUHJlZnNSZXF1ZXN0EmAKBXByZWZzGAEgASgLMhwua2F0YW4uQWNjb3'
+    'VudEludGVyZmFjZVByZWZzQiySQSkyJ9Cf0LDRgNCw0LzQtdGC0YDRiyDQuNC90YLQtdGA0YTQ'
+    'tdC50YHQsFIFcHJlZnM=');
+
+@$core.Deprecated('Use editInterfacePrefsResponseDescriptor instead')
+const EditInterfacePrefsResponse$json = {
+  '1': 'EditInterfacePrefsResponse',
+};
+
+/// Descriptor for `EditInterfacePrefsResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List editInterfacePrefsResponseDescriptor =
+    $convert.base64Decode('ChpFZGl0SW50ZXJmYWNlUHJlZnNSZXNwb25zZQ==');
 
 @$core.Deprecated('Use editAccountRequestDescriptor instead')
 const EditAccountRequest$json = {

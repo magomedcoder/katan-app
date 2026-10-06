@@ -1,3 +1,5 @@
+import 'package:katan/domain/entities/ar_object.dart';
+
 abstract final class TaskObjectTypes {
   static const node = 12;
   static const building = 34;
@@ -12,6 +14,27 @@ abstract final class TaskObjectTypes {
     (value: customer, label: 'Абоненты'),
     (value: cable, label: 'Кабельные линии'),
   ];
+
+  static ArObjectKind? arKindForTaskObject(int objectType) {
+    return switch (objectType) {
+      node => ArObjectKind.node,
+      device => ArObjectKind.device,
+      cable => ArObjectKind.cable,
+      customer => ArObjectKind.customer,
+      _ => null,
+    };
+  }
+
+  static int? taskTypeForArKind(ArObjectKind kind) {
+    return switch (kind) {
+      ArObjectKind.node => node,
+      ArObjectKind.device => device,
+      ArObjectKind.cable => cable,
+      ArObjectKind.customer => customer,
+      ArObjectKind.reserve => cable,
+      ArObjectKind.task || ArObjectKind.coverage => null,
+    };
+  }
 
   static String label(int objectType) {
     for (final option in options) {

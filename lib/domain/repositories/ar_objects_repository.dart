@@ -53,4 +53,20 @@ abstract class ArObjectsRepository {
   });
 
   Future<ArMapObject> clearDeviceCover(int deviceId);
+
+  Future<ArMapObject> setNodeHere({
+    required int nodeId,
+    required double lat,
+    required double lng,
+  });
+
+  Future<ArMapObject> addCableReserve({
+    required int cableId,
+    required double lat,
+    required double lng,
+    required int meter,
+    String note = '',
+  });
+
+  Future<(String text, String impact)> schemeHint(ArObjectRef ref);
 }

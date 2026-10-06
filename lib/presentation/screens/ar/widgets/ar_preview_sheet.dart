@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:katan/app/theme.dart';
 import 'package:katan/core/utils/geo.dart';
+import 'package:katan/core/utils/task_object_types.dart';
 import 'package:katan/domain/entities/ar_object.dart';
 import 'package:katan/presentation/cubit/ar_session_cubit.dart';
+import 'package:katan/presentation/screens/tasks/create_task_sheet.dart';
 
 Future<void> showArPreviewSheet(BuildContext context, ArNearbyItem item) {
   final cubit = context.read<ArSessionCubit>();
@@ -62,7 +66,9 @@ Future<void> showArPreviewSheet(BuildContext context, ArNearbyItem item) {
       final ready = cubit.state;
       final indoor = ready is ArSessionReady && ready.isIndoor;
 
-      return Padding(
+      return BlocProvider.value(
+        value: cubit,
+        child: Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 24 + MediaQuery.viewInsetsOf(sheetContext).bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -119,7 +125,79 @@ Future<void> showArPreviewSheet(BuildContext context, ArNearbyItem item) {
               'ID ${obj.ref.kind.wire}:${obj.ref.id}',
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
-            const SizedBox(height: 16),
+            if (obj.isOutage)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Авария / отказ по мониторингу',
+                  style: TextStyle(color: Color(0xFFFF5252), fontWeight: FontWeight.w700),
+                ),
+              ),
+            BlocBuilder<ArSessionCubit, ArSessionState>(
+              buildWhen: (prev, next) => next is ArSessionReady && (prev is! ArSessionReady || prev.schemeHint != next.schemeHint || prev.schemeImpact != next.schemeImpact),
+              builder: (context, state) {
+                if (state is! ArSessionReady) {
+                  return const SizedBox.shrink();
+                }
+
+                if (state.schemeHint.isEmpty && state.schemeImpact.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    [state.schemeHint, state.schemeImpact].where((s) => s.isNotEmpty).join('\n'),
+                    style: const TextStyle(color: AppColors.textRegular, fontSize: 13),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            if (obj.kind == ArObjectKind.node && cubit.canWriteNode && !indoor)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: FilledButton.tonalIcon(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    _runCoverAction(
+                      cubit.setNodeHere(obj.ref.id),
+                      context,
+                      okLabel: 'Координаты сооружения записаны здесь',
+                      failLabel: 'Не удалось уточнить координаты',
+                    );
+                  },
+                  icon: const Icon(Icons.my_location, size: 18),
+                  label: const Text('Координаты здесь'),
+                ),
+              ),
+            if ((obj.kind == ArObjectKind.cable || obj.kind == ArObjectKind.reserve) && cubit.canWriteCable && !indoor)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: FilledButton.tonalIcon(
+                  onPressed: () async {
+                    final cableId = obj.kind == ArObjectKind.reserve ? obj.peerId : obj.ref.id;
+                    if (cableId <= 0) {
+                      return;
+                    }
+
+                    final meters = await _askReserveMeters(sheetContext);
+                    if (meters == null || !sheetContext.mounted) {
+                      return;
+                    }
+
+                    Navigator.pop(sheetContext);
+                    _runCoverAction(
+                      cubit.addCableReserve(cableId: cableId, meter: meters),
+                      context,
+                      okLabel: 'Запас $meters м записан',
+                      failLabel: 'Не удалось записать запас',
+                    );
+                  },
+                  icon: const Icon(Icons.more, size: 18),
+                  label: const Text('Запас кабеля здесь'),
+                ),
+              ),
             if (obj.canEnterInside)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -157,7 +235,7 @@ Future<void> showArPreviewSheet(BuildContext context, ArNearbyItem item) {
                         peerId: peerId,
                       ),
                       context,
-                      okLabel: 'Закрыто - смотрите внутри по XYZ',
+                      okLabel: 'Наведите луч и запишите XYZ',
                       failLabel: 'Не удалось закрыть',
                     );
                   },
@@ -176,9 +254,10 @@ Future<void> showArPreviewSheet(BuildContext context, ArNearbyItem item) {
                         deviceId: obj.ref.id,
                         peerType: obj.peerType,
                         peerId: obj.peerId,
+                        reposition: true,
                       ),
                       context,
-                      okLabel: 'Переставлено: новые (X,Y,Z)',
+                      okLabel: 'Наведите луч - затем Записать',
                       failLabel: 'Не удалось переставить',
                     );
                   },
@@ -211,9 +290,30 @@ Future<void> showArPreviewSheet(BuildContext context, ArNearbyItem item) {
               icon: const Icon(Icons.navigation, size: 18),
               label: const Text('Вести сюда'),
             ),
+            const SizedBox(height: 8),
+            if (TaskObjectTypes.taskTypeForArKind(obj.kind) != null)
+            OutlinedButton.icon(
+              onPressed: () {
+                final readyState = cubit.state;
+                final geo = readyState is ArSessionReady
+                  ? 'AR ${readyState.lat.toStringAsFixed(6)}, ${readyState.lng.toStringAsFixed(6)} heading ${readyState.headingDegrees.round()} ${obj.ref.token}'
+                  : obj.ref.token;
+                Navigator.pop(sheetContext);
+                unawaited(showCreateTaskSheet(
+                  context,
+                  initialTitle: obj.title,
+                  initialDescription: geo,
+                  initialObjectType: TaskObjectTypes.taskTypeForArKind(obj.kind),
+                  initialObjectId: obj.kind == ArObjectKind.reserve ? obj.peerId : obj.ref.id,
+                ));
+              },
+              icon: const Icon(Icons.add_task, size: 18),
+              label: const Text('Задача с pin'),
+            ),
           ],
         ),
-      );
+      ),
+    );
     },
   ).whenComplete(cubit.clearSelection);
 }
@@ -242,5 +342,40 @@ IconData _icon(ArObjectKind kind) {
     ArObjectKind.device => Icons.router,
     ArObjectKind.cable => Icons.cable,
     ArObjectKind.customer => Icons.home_outlined,
+    ArObjectKind.reserve => Icons.more,
+    ArObjectKind.task => Icons.task_alt,
+    ArObjectKind.coverage => Icons.radar,
   };
+}
+
+Future<int?> _askReserveMeters(BuildContext context) async {
+  final controller = TextEditingController(text: '10');
+  final result = await showDialog<int>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Запас кабеля, м'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(hintText: 'метры'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final n = int.tryParse(controller.text.trim()) ?? 0;
+              Navigator.pop(dialogContext, n > 0 ? n : null);
+            },
+            child: const Text('Записать'),
+          ),
+        ],
+      );
+    },
+  );
+  controller.dispose();
+  return result;
 }

@@ -63,6 +63,10 @@ class Account extends Equatable {
       kinds.add(ArObjectKind.customer);
     }
 
+    if (hasPermission('task|read') || hasPermission('task|write')) {
+      kinds.add(ArObjectKind.task);
+    }
+
     return kinds;
   }
 }

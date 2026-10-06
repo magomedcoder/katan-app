@@ -60,6 +60,13 @@ class MapServiceClient extends $grpc.Client {
     return $createUnaryCall(_$getMapNodes, request, options: options);
   }
 
+  $grpc.ResponseFuture<$0.GetMapCustomersResponse> getMapCustomers(
+    $0.GetMapCustomersRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$getMapCustomers, request, options: options);
+  }
+
   $grpc.ResponseFuture<$0.GetMapCablesResponse> getMapCables(
     $0.GetMapCablesRequest request, {
     $grpc.CallOptions? options,
@@ -176,6 +183,27 @@ class MapServiceClient extends $grpc.Client {
     return $createUnaryCall(_$clearArDeviceCover, request, options: options);
   }
 
+  $grpc.ResponseFuture<$0.SetArNodeHereResponse> setArNodeHere(
+    $0.SetArNodeHereRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$setArNodeHere, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$0.AddArCableReserveResponse> addArCableReserve(
+    $0.AddArCableReserveRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$addArCableReserve, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$0.GetArSchemeHintResponse> getArSchemeHint(
+    $0.GetArSchemeHintRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$getArSchemeHint, request, options: options);
+  }
+
   // method descriptors
 
   static final _$getTiles =
@@ -198,6 +226,11 @@ class MapServiceClient extends $grpc.Client {
           '/katan.MapService/GetMapNodes',
           ($0.GetMapNodesRequest value) => value.writeToBuffer(),
           $0.GetMapNodesResponse.fromBuffer);
+  static final _$getMapCustomers =
+      $grpc.ClientMethod<$0.GetMapCustomersRequest, $0.GetMapCustomersResponse>(
+          '/katan.MapService/GetMapCustomers',
+          ($0.GetMapCustomersRequest value) => value.writeToBuffer(),
+          $0.GetMapCustomersResponse.fromBuffer);
   static final _$getMapCables =
       $grpc.ClientMethod<$0.GetMapCablesRequest, $0.GetMapCablesResponse>(
           '/katan.MapService/GetMapCables',
@@ -278,6 +311,21 @@ class MapServiceClient extends $grpc.Client {
       '/katan.MapService/ClearArDeviceCover',
       ($0.ClearArDeviceCoverRequest value) => value.writeToBuffer(),
       $0.ClearArDeviceCoverResponse.fromBuffer);
+  static final _$setArNodeHere =
+      $grpc.ClientMethod<$0.SetArNodeHereRequest, $0.SetArNodeHereResponse>(
+          '/katan.MapService/SetArNodeHere',
+          ($0.SetArNodeHereRequest value) => value.writeToBuffer(),
+          $0.SetArNodeHereResponse.fromBuffer);
+  static final _$addArCableReserve = $grpc.ClientMethod<
+          $0.AddArCableReserveRequest, $0.AddArCableReserveResponse>(
+      '/katan.MapService/AddArCableReserve',
+      ($0.AddArCableReserveRequest value) => value.writeToBuffer(),
+      $0.AddArCableReserveResponse.fromBuffer);
+  static final _$getArSchemeHint =
+      $grpc.ClientMethod<$0.GetArSchemeHintRequest, $0.GetArSchemeHintResponse>(
+          '/katan.MapService/GetArSchemeHint',
+          ($0.GetArSchemeHintRequest value) => value.writeToBuffer(),
+          $0.GetArSchemeHintResponse.fromBuffer);
 }
 
 @$pb.GrpcServiceName('katan.MapService')
@@ -317,6 +365,15 @@ abstract class MapServiceBase extends $grpc.Service {
             ($core.List<$core.int> value) =>
                 $0.GetMapNodesRequest.fromBuffer(value),
             ($0.GetMapNodesResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.GetMapCustomersRequest,
+            $0.GetMapCustomersResponse>(
+        'GetMapCustomers',
+        getMapCustomers_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.GetMapCustomersRequest.fromBuffer(value),
+        ($0.GetMapCustomersResponse value) => value.writeToBuffer()));
     $addMethod(
         $grpc.ServiceMethod<$0.GetMapCablesRequest, $0.GetMapCablesResponse>(
             'GetMapCables',
@@ -461,6 +518,33 @@ abstract class MapServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $0.ClearArDeviceCoverRequest.fromBuffer(value),
         ($0.ClearArDeviceCoverResponse value) => value.writeToBuffer()));
+    $addMethod(
+        $grpc.ServiceMethod<$0.SetArNodeHereRequest, $0.SetArNodeHereResponse>(
+            'SetArNodeHere',
+            setArNodeHere_Pre,
+            false,
+            false,
+            ($core.List<$core.int> value) =>
+                $0.SetArNodeHereRequest.fromBuffer(value),
+            ($0.SetArNodeHereResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.AddArCableReserveRequest,
+            $0.AddArCableReserveResponse>(
+        'AddArCableReserve',
+        addArCableReserve_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.AddArCableReserveRequest.fromBuffer(value),
+        ($0.AddArCableReserveResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.GetArSchemeHintRequest,
+            $0.GetArSchemeHintResponse>(
+        'GetArSchemeHint',
+        getArSchemeHint_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.GetArSchemeHintRequest.fromBuffer(value),
+        ($0.GetArSchemeHintResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.GetTilesResponse> getTiles_Pre($grpc.ServiceCall $call,
@@ -495,6 +579,15 @@ abstract class MapServiceBase extends $grpc.Service {
 
   $async.Future<$0.GetMapNodesResponse> getMapNodes(
       $grpc.ServiceCall call, $0.GetMapNodesRequest request);
+
+  $async.Future<$0.GetMapCustomersResponse> getMapCustomers_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.GetMapCustomersRequest> $request) async {
+    return getMapCustomers($call, await $request);
+  }
+
+  $async.Future<$0.GetMapCustomersResponse> getMapCustomers(
+      $grpc.ServiceCall call, $0.GetMapCustomersRequest request);
 
   $async.Future<$0.GetMapCablesResponse> getMapCables_Pre(
       $grpc.ServiceCall $call,
@@ -634,4 +727,31 @@ abstract class MapServiceBase extends $grpc.Service {
 
   $async.Future<$0.ClearArDeviceCoverResponse> clearArDeviceCover(
       $grpc.ServiceCall call, $0.ClearArDeviceCoverRequest request);
+
+  $async.Future<$0.SetArNodeHereResponse> setArNodeHere_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.SetArNodeHereRequest> $request) async {
+    return setArNodeHere($call, await $request);
+  }
+
+  $async.Future<$0.SetArNodeHereResponse> setArNodeHere(
+      $grpc.ServiceCall call, $0.SetArNodeHereRequest request);
+
+  $async.Future<$0.AddArCableReserveResponse> addArCableReserve_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.AddArCableReserveRequest> $request) async {
+    return addArCableReserve($call, await $request);
+  }
+
+  $async.Future<$0.AddArCableReserveResponse> addArCableReserve(
+      $grpc.ServiceCall call, $0.AddArCableReserveRequest request);
+
+  $async.Future<$0.GetArSchemeHintResponse> getArSchemeHint_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.GetArSchemeHintRequest> $request) async {
+    return getArSchemeHint($call, await $request);
+  }
+
+  $async.Future<$0.GetArSchemeHintResponse> getArSchemeHint(
+      $grpc.ServiceCall call, $0.GetArSchemeHintRequest request);
 }

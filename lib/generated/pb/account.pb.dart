@@ -526,6 +526,7 @@ class GetAccountResponse extends $pb.GeneratedMessage {
     GetAccountResponse_Active? active,
     GetAccountResponse_Notification? notification,
     $core.Iterable<$core.String>? allowedLoginIps,
+    AccountInterfacePrefs? interfacePrefs,
   }) {
     final result = create();
     if (fullName != null) result.fullName = fullName;
@@ -535,6 +536,7 @@ class GetAccountResponse extends $pb.GeneratedMessage {
     if (active != null) result.active = active;
     if (notification != null) result.notification = notification;
     if (allowedLoginIps != null) result.allowedLoginIps.addAll(allowedLoginIps);
+    if (interfacePrefs != null) result.interfacePrefs = interfacePrefs;
     return result;
   }
 
@@ -561,6 +563,8 @@ class GetAccountResponse extends $pb.GeneratedMessage {
         6, _omitFieldNames ? '' : 'notification',
         subBuilder: GetAccountResponse_Notification.create)
     ..pPS(7, _omitFieldNames ? '' : 'allowedLoginIps')
+    ..aOM<AccountInterfacePrefs>(8, _omitFieldNames ? '' : 'interfacePrefs',
+        subBuilder: AccountInterfacePrefs.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -631,6 +635,264 @@ class GetAccountResponse extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(7)
   $pb.PbList<$core.String> get allowedLoginIps => $_getList(6);
+
+  @$pb.TagNumber(8)
+  AccountInterfacePrefs get interfacePrefs => $_getN(7);
+  @$pb.TagNumber(8)
+  set interfacePrefs(AccountInterfacePrefs value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasInterfacePrefs() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearInterfacePrefs() => $_clearField(8);
+  @$pb.TagNumber(8)
+  AccountInterfacePrefs ensureInterfacePrefs() => $_ensure(7);
+}
+
+class AccountMapDisplayDefaults extends $pb.GeneratedMessage {
+  factory AccountMapDisplayDefaults({
+    $core.Iterable<$core.String>? nodes,
+    $core.Iterable<$core.String>? cables,
+    $core.Iterable<$core.String>? coverageArea,
+    $core.Iterable<$core.String>? polygons,
+    $core.Iterable<$core.String>? buildings,
+    $core.Iterable<$fixnum.Int64>? tags,
+  }) {
+    final result = create();
+    if (nodes != null) result.nodes.addAll(nodes);
+    if (cables != null) result.cables.addAll(cables);
+    if (coverageArea != null) result.coverageArea.addAll(coverageArea);
+    if (polygons != null) result.polygons.addAll(polygons);
+    if (buildings != null) result.buildings.addAll(buildings);
+    if (tags != null) result.tags.addAll(tags);
+    return result;
+  }
+
+  AccountMapDisplayDefaults._();
+
+  factory AccountMapDisplayDefaults.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AccountMapDisplayDefaults.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AccountMapDisplayDefaults',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..pPS(1, _omitFieldNames ? '' : 'nodes')
+    ..pPS(2, _omitFieldNames ? '' : 'cables')
+    ..pPS(3, _omitFieldNames ? '' : 'coverageArea')
+    ..pPS(4, _omitFieldNames ? '' : 'polygons')
+    ..pPS(5, _omitFieldNames ? '' : 'buildings')
+    ..p<$fixnum.Int64>(6, _omitFieldNames ? '' : 'tags', $pb.PbFieldType.K6)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountMapDisplayDefaults clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountMapDisplayDefaults copyWith(
+          void Function(AccountMapDisplayDefaults) updates) =>
+      super.copyWith((message) => updates(message as AccountMapDisplayDefaults))
+          as AccountMapDisplayDefaults;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AccountMapDisplayDefaults create() => AccountMapDisplayDefaults._();
+  @$core.override
+  AccountMapDisplayDefaults createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AccountMapDisplayDefaults getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AccountMapDisplayDefaults>(create);
+  static AccountMapDisplayDefaults? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.String> get nodes => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.String> get cables => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<$core.String> get coverageArea => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $pb.PbList<$core.String> get polygons => $_getList(3);
+
+  @$pb.TagNumber(5)
+  $pb.PbList<$core.String> get buildings => $_getList(4);
+
+  @$pb.TagNumber(6)
+  $pb.PbList<$fixnum.Int64> get tags => $_getList(5);
+}
+
+class AccountInterfacePrefs extends $pb.GeneratedMessage {
+  factory AccountInterfacePrefs({
+    AccountMapDisplayDefaults? mapDisplay,
+    $core.bool? hideMetrika,
+  }) {
+    final result = create();
+    if (mapDisplay != null) result.mapDisplay = mapDisplay;
+    if (hideMetrika != null) result.hideMetrika = hideMetrika;
+    return result;
+  }
+
+  AccountInterfacePrefs._();
+
+  factory AccountInterfacePrefs.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AccountInterfacePrefs.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AccountInterfacePrefs',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOM<AccountMapDisplayDefaults>(1, _omitFieldNames ? '' : 'mapDisplay',
+        subBuilder: AccountMapDisplayDefaults.create)
+    ..aOB(2, _omitFieldNames ? '' : 'hideMetrika')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountInterfacePrefs clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AccountInterfacePrefs copyWith(
+          void Function(AccountInterfacePrefs) updates) =>
+      super.copyWith((message) => updates(message as AccountInterfacePrefs))
+          as AccountInterfacePrefs;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AccountInterfacePrefs create() => AccountInterfacePrefs._();
+  @$core.override
+  AccountInterfacePrefs createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AccountInterfacePrefs getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AccountInterfacePrefs>(create);
+  static AccountInterfacePrefs? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  AccountMapDisplayDefaults get mapDisplay => $_getN(0);
+  @$pb.TagNumber(1)
+  set mapDisplay(AccountMapDisplayDefaults value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMapDisplay() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMapDisplay() => $_clearField(1);
+  @$pb.TagNumber(1)
+  AccountMapDisplayDefaults ensureMapDisplay() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get hideMetrika => $_getBF(1);
+  @$pb.TagNumber(2)
+  set hideMetrika($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasHideMetrika() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearHideMetrika() => $_clearField(2);
+}
+
+class EditInterfacePrefsRequest extends $pb.GeneratedMessage {
+  factory EditInterfacePrefsRequest({
+    AccountInterfacePrefs? prefs,
+  }) {
+    final result = create();
+    if (prefs != null) result.prefs = prefs;
+    return result;
+  }
+
+  EditInterfacePrefsRequest._();
+
+  factory EditInterfacePrefsRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory EditInterfacePrefsRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EditInterfacePrefsRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOM<AccountInterfacePrefs>(1, _omitFieldNames ? '' : 'prefs',
+        subBuilder: AccountInterfacePrefs.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EditInterfacePrefsRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EditInterfacePrefsRequest copyWith(
+          void Function(EditInterfacePrefsRequest) updates) =>
+      super.copyWith((message) => updates(message as EditInterfacePrefsRequest))
+          as EditInterfacePrefsRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EditInterfacePrefsRequest create() => EditInterfacePrefsRequest._();
+  @$core.override
+  EditInterfacePrefsRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static EditInterfacePrefsRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<EditInterfacePrefsRequest>(create);
+  static EditInterfacePrefsRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  AccountInterfacePrefs get prefs => $_getN(0);
+  @$pb.TagNumber(1)
+  set prefs(AccountInterfacePrefs value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPrefs() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPrefs() => $_clearField(1);
+  @$pb.TagNumber(1)
+  AccountInterfacePrefs ensurePrefs() => $_ensure(0);
+}
+
+class EditInterfacePrefsResponse extends $pb.GeneratedMessage {
+  factory EditInterfacePrefsResponse() => create();
+
+  EditInterfacePrefsResponse._();
+
+  factory EditInterfacePrefsResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory EditInterfacePrefsResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'EditInterfacePrefsResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EditInterfacePrefsResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EditInterfacePrefsResponse copyWith(
+          void Function(EditInterfacePrefsResponse) updates) =>
+      super.copyWith(
+              (message) => updates(message as EditInterfacePrefsResponse))
+          as EditInterfacePrefsResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EditInterfacePrefsResponse create() => EditInterfacePrefsResponse._();
+  @$core.override
+  EditInterfacePrefsResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static EditInterfacePrefsResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<EditInterfacePrefsResponse>(create);
+  static EditInterfacePrefsResponse? _defaultInstance;
 }
 
 class EditAccountRequest extends $pb.GeneratedMessage {

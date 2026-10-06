@@ -626,12 +626,14 @@ class BaseUser extends $pb.GeneratedMessage {
     $core.String? username,
     $core.String? name,
     $core.String? surname,
+    $core.String? patronymic,
   }) {
     final result = create();
     if (id != null) result.id = id;
     if (username != null) result.username = username;
     if (name != null) result.name = name;
     if (surname != null) result.surname = surname;
+    if (patronymic != null) result.patronymic = patronymic;
     return result;
   }
 
@@ -652,6 +654,7 @@ class BaseUser extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'username')
     ..aOS(3, _omitFieldNames ? '' : 'name')
     ..aOS(4, _omitFieldNames ? '' : 'surname')
+    ..aOS(5, _omitFieldNames ? '' : 'patronymic')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -707,6 +710,15 @@ class BaseUser extends $pb.GeneratedMessage {
   $core.bool hasSurname() => $_has(3);
   @$pb.TagNumber(4)
   void clearSurname() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get patronymic => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set patronymic($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasPatronymic() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPatronymic() => $_clearField(5);
 }
 
 class Pagination extends $pb.GeneratedMessage {

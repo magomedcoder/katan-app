@@ -78,6 +78,9 @@ class ArNearbySheet extends StatelessWidget {
       ArObjectKind.device => Icons.router,
       ArObjectKind.cable => Icons.cable,
       ArObjectKind.customer => Icons.home_outlined,
+      ArObjectKind.reserve => Icons.more,
+      ArObjectKind.task => Icons.task_alt,
+      ArObjectKind.coverage => Icons.radar,
     };
   }
 }

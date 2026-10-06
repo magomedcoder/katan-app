@@ -22,6 +22,8 @@ Future<int?> showCreateTaskSheet(
   String? parentTitle,
   String? initialTitle,
   String? initialDescription,
+  int? initialObjectType,
+  int? initialObjectId,
   bool openDetailAfterCreate = true,
   VoidCallback? onCreated,
 }) {
@@ -43,6 +45,8 @@ Future<int?> showCreateTaskSheet(
         parentTitle: parentTitle,
         initialTitle: initialTitle,
         initialDescription: initialDescription,
+        initialObjectType: initialObjectType,
+        initialObjectId: initialObjectId,
         openDetailAfterCreate: openDetailAfterCreate,
         onCreated: onCreated,
       ),
@@ -61,6 +65,8 @@ class _CreateTaskForm extends StatefulWidget {
     this.parentTitle,
     this.initialTitle,
     this.initialDescription,
+    this.initialObjectType,
+    this.initialObjectId,
     this.openDetailAfterCreate = true,
     this.onCreated,
   });
@@ -74,6 +80,8 @@ class _CreateTaskForm extends StatefulWidget {
   final String? parentTitle;
   final String? initialTitle;
   final String? initialDescription;
+  final int? initialObjectType;
+  final int? initialObjectId;
   final bool openDetailAfterCreate;
   final VoidCallback? onCreated;
 
@@ -101,6 +109,10 @@ class _CreateTaskFormState extends State<_CreateTaskForm> {
   void initState() {
     super.initState();
     _projectId = widget.projectId;
+    _objectType = widget.initialObjectType;
+    if ((widget.initialObjectId ?? 0) > 0) {
+      _objectIdController.text = '${widget.initialObjectId}';
+    }
     if (!widget.lockProject) {
       _loadProjects();
     }

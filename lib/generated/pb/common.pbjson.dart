@@ -181,6 +181,7 @@ const BaseUser$json = {
     {'1': 'username', '3': 2, '4': 1, '5': 9, '8': {}, '10': 'username'},
     {'1': 'name', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'name'},
     {'1': 'surname', '3': 4, '4': 1, '5': 9, '8': {}, '10': 'surname'},
+    {'1': 'patronymic', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'patronymic'},
   ],
 };
 
@@ -190,7 +191,8 @@ final $typed_data.Uint8List baseUserDescriptor = $convert.base64Decode(
     'VSAmlkEjwKCHVzZXJuYW1lGAIgASgJQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQ'
     'tVIIdXNlcm5hbWUSNAoEbmFtZRgDIAEoCUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQvd'
     'C40LVSBG5hbWUSOgoHc3VybmFtZRgEIAEoCUIgkkEdMhvRgdC60L7RgNC+INC+0L/QuNGB0LDQ'
-    'vdC40LVSB3N1cm5hbWU=');
+    'vdC40LVSB3N1cm5hbWUSNQoKcGF0cm9ueW1pYxgFIAEoCUIVkkESMhDQvtGC0YfQtdGB0YLQst'
+    'C+UgpwYXRyb255bWlj');
 
 @$core.Deprecated('Use paginationDescriptor instead')
 const Pagination$json = {

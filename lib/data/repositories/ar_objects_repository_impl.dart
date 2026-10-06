@@ -41,4 +41,35 @@ class ArObjectsRepositoryImpl implements ArObjectsRepository {
   Future<ArMapObject> clearDeviceCover(int deviceId) {
     return _remote.clearArDeviceCover(deviceId);
   }
+
+  @override
+  Future<ArMapObject> setNodeHere({
+    required int nodeId,
+    required double lat,
+    required double lng,
+  }) {
+    return _remote.setArNodeHere(nodeId: nodeId, lat: lat, lng: lng);
+  }
+
+  @override
+  Future<ArMapObject> addCableReserve({
+    required int cableId,
+    required double lat,
+    required double lng,
+    required int meter,
+    String note = '',
+  }) {
+    return _remote.addArCableReserve(
+      cableId: cableId,
+      lat: lat,
+      lng: lng,
+      meter: meter,
+      note: note,
+    );
+  }
+
+  @override
+  Future<(String text, String impact)> schemeHint(ArObjectRef ref) {
+    return _remote.getArSchemeHint(ref);
+  }
 }

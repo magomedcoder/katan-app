@@ -128,6 +128,84 @@ class MapRemoteDataSource {
     }
   }
 
+  Future<ArMapObject> setArNodeHere({
+    required int nodeId,
+    required double lat,
+    required double lng,
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.setArNodeHere(
+        SetArNodeHereRequest(nodeId: Int64(nodeId), lat: lat, lng: lng),
+        options: await _authOptions(),
+      );
+      final item = _mapItem(response.item);
+      if (item == null) {
+        throw const ServerFailure('Пустой ответ координат');
+      }
+
+      return item;
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось уточнить координаты');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<ArMapObject> addArCableReserve({
+    required int cableId,
+    required double lat,
+    required double lng,
+    required int meter,
+    String note = '',
+  }) async {
+    try {
+      final client = await _client();
+      final response = await client.addArCableReserve(
+        AddArCableReserveRequest(
+          cableId: Int64(cableId),
+          lat: lat,
+          lng: lng,
+          meter: Int64(meter),
+          note: note,
+        ),
+        options: await _authOptions(),
+      );
+
+      final item = _mapItem(response.item);
+      if (item == null) {
+        throw const ServerFailure('Пустой ответ запаса');
+      }
+
+      return item;
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось записать запас');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
+  Future<(String, String)> getArSchemeHint(ArObjectRef ref) async {
+    try {
+      final client = await _client();
+      final response = await client.getArSchemeHint(
+        GetArSchemeHintRequest(kind: ref.kind.wire, id: Int64(ref.id)),
+        options: await _authOptions(),
+      );
+      return (response.text, response.impact);
+    } on Failure {
+      rethrow;
+    } on GrpcError catch (e) {
+      throw _mapGrpc(e, 'Не удалось загрузить схему');
+    } catch (e) {
+      throw NetworkFailure(e.toString());
+    }
+  }
+
   ArMapObject? _mapItem(ArObjectItem item) {
     final kind = ArObjectKind.tryParse(item.kind);
     if (kind == null || item.id.toInt() <= 0) {

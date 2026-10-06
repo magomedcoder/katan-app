@@ -121,6 +121,13 @@ class AccountServiceClient extends $grpc.Client {
     return $createUnaryCall(_$updateAllowedLoginIps, request, options: options);
   }
 
+  $grpc.ResponseFuture<$0.EditInterfacePrefsResponse> editInterfacePrefs(
+    $0.EditInterfacePrefsRequest request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createUnaryCall(_$editInterfacePrefs, request, options: options);
+  }
+
   // method descriptors
 
   static final _$getAccount =
@@ -183,6 +190,11 @@ class AccountServiceClient extends $grpc.Client {
           '/katan.AccountService/UpdateAllowedLoginIps',
           ($0.UpdateAllowedLoginIpsRequest value) => value.writeToBuffer(),
           $1.Empty.fromBuffer);
+  static final _$editInterfacePrefs = $grpc.ClientMethod<
+          $0.EditInterfacePrefsRequest, $0.EditInterfacePrefsResponse>(
+      '/katan.AccountService/EditInterfacePrefs',
+      ($0.EditInterfacePrefsRequest value) => value.writeToBuffer(),
+      $0.EditInterfacePrefsResponse.fromBuffer);
 }
 
 @$pb.GrpcServiceName('katan.AccountService')
@@ -293,6 +305,15 @@ abstract class AccountServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $0.UpdateAllowedLoginIpsRequest.fromBuffer(value),
         ($1.Empty value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.EditInterfacePrefsRequest,
+            $0.EditInterfacePrefsResponse>(
+        'EditInterfacePrefs',
+        editInterfacePrefs_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $0.EditInterfacePrefsRequest.fromBuffer(value),
+        ($0.EditInterfacePrefsResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.GetAccountResponse> getAccount_Pre($grpc.ServiceCall $call,
@@ -396,4 +417,13 @@ abstract class AccountServiceBase extends $grpc.Service {
 
   $async.Future<$1.Empty> updateAllowedLoginIps(
       $grpc.ServiceCall call, $0.UpdateAllowedLoginIpsRequest request);
+
+  $async.Future<$0.EditInterfacePrefsResponse> editInterfacePrefs_Pre(
+      $grpc.ServiceCall $call,
+      $async.Future<$0.EditInterfacePrefsRequest> $request) async {
+    return editInterfacePrefs($call, await $request);
+  }
+
+  $async.Future<$0.EditInterfacePrefsResponse> editInterfacePrefs(
+      $grpc.ServiceCall call, $0.EditInterfacePrefsRequest request);
 }

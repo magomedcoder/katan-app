@@ -247,6 +247,69 @@ final $typed_data.Uint8List getMapNodesResponseDescriptor = $convert.base64Decod
     'KAlCIJJBHTIb0YHQutC+0YDQviDQvtC/0LjRgdCw0L3QuNC1UgRkYXRhEjYKBWNvdW50GAMgAS'
     'gDQiCSQR0yG9GB0LrQvtGA0L4g0L7Qv9C40YHQsNC90LjQtVIFY291bnQ=');
 
+@$core.Deprecated('Use getMapCustomersRequestDescriptor instead')
+const GetMapCustomersRequest$json = {
+  '1': 'GetMapCustomersRequest',
+  '2': [
+    {
+      '1': 'bounds',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.PointBounds',
+      '8': {},
+      '10': 'bounds'
+    },
+    {
+      '1': 'customer_type_ids',
+      '3': 2,
+      '4': 3,
+      '5': 3,
+      '8': {},
+      '10': 'customerTypeIds'
+    },
+    {'1': 'zoom', '3': 3, '4': 1, '5': 5, '8': {}, '10': 'zoom'},
+    {'1': 'limit', '3': 4, '4': 1, '5': 5, '8': {}, '10': 'limit'},
+    {'1': 'offset', '3': 5, '4': 1, '5': 5, '8': {}, '10': 'offset'},
+  ],
+};
+
+/// Descriptor for `GetMapCustomersRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getMapCustomersRequestDescriptor = $convert.base64Decode(
+    'ChZHZXRNYXBDdXN0b21lcnNSZXF1ZXN0EkAKBmJvdW5kcxgBIAEoCzISLmthdGFuLlBvaW50Qm'
+    '91bmRzQhSSQREyD1ZpZXdwb3J0IGJvdW5kc1IGYm91bmRzEnwKEWN1c3RvbWVyX3R5cGVfaWRz'
+    'GAIgAygDQlCSQU0yS9Ck0LjQu9GM0YLRgCDQv9C+INGC0LjQv9Cw0Lwg0LDQsdC+0L3QtdC90Y'
+    'LQvtCyICjQv9GD0YHRgtC+ID0g0L3QuNGH0LXQs9C+KVIPY3VzdG9tZXJUeXBlSWRzEh0KBHpv'
+    'b20YAyABKAVCCZJBBjIEWm9vbVIEem9vbRIlCgVsaW1pdBgEIAEoBUIPkkEMMgrQm9C40LzQuN'
+    'GCUgVsaW1pdBI8CgZvZmZzZXQYBSABKAVCJJJBITIfT2Zmc2V0OyAtMSA9INGC0L7Qu9GM0LrQ'
+    'viBjb3VudFIGb2Zmc2V0');
+
+@$core.Deprecated('Use getMapCustomersResponseDescriptor instead')
+const GetMapCustomersResponse$json = {
+  '1': 'GetMapCustomersResponse',
+  '2': [
+    {
+      '1': 'features',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.katan.Feature',
+      '8': {},
+      '10': 'features'
+    },
+    {'1': 'data', '3': 2, '4': 1, '5': 9, '8': {}, '10': 'data'},
+    {'1': 'count', '3': 3, '4': 1, '5': 3, '8': {}, '10': 'count'},
+  ],
+};
+
+/// Descriptor for `GetMapCustomersResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getMapCustomersResponseDescriptor = $convert.base64Decode(
+    'ChdHZXRNYXBDdXN0b21lcnNSZXNwb25zZRJSCghmZWF0dXJlcxgBIAMoCzIOLmthdGFuLkZlYX'
+    'R1cmVCJpJBIzIh0JzQsNGA0LrQtdGA0Ysg0LDQsdC+0L3QtdC90YLQvtCyUghmZWF0dXJlcxJA'
+    'CgRkYXRhGAIgASgJQiySQSkyJ9Ci0LjQvyDQvtCx0YrQtdC60YLQsCDQv9GA0LggY291bnQtb2'
+    '5seVIEZGF0YRIxCgVjb3VudBgDIAEoA0IbkkEYMhbQktGB0LXQs9C+INCyIHZpZXdwb3J0UgVj'
+    'b3VudA==');
+
 @$core.Deprecated('Use getMapCablesRequestDescriptor instead')
 const GetMapCablesRequest$json = {
   '1': 'GetMapCablesRequest',
@@ -785,12 +848,8 @@ const GetArObjectsRequest$json = {
     },
     {'1': 'indoor_peer_type', '3': 6, '4': 1, '5': 5, '10': 'indoorPeerType'},
     {'1': 'indoor_peer_id', '3': 7, '4': 1, '5': 3, '10': 'indoorPeerId'},
-    {'1': 'include_covered', '3': 9, '4': 1, '5': 8, '10': 'includeCovered'},
+    {'1': 'include_covered', '3': 8, '4': 1, '5': 8, '10': 'includeCovered'},
   ],
-  '9': [
-    {'1': 8, '2': 9},
-  ],
-  '10': ['floor_filter'],
 };
 
 /// Descriptor for `GetArObjectsRequest`. Decode as a `google.protobuf.DescriptorProto`.
@@ -803,8 +862,7 @@ final $typed_data.Uint8List getArObjectsRequestDescriptor = $convert.base64Decod
     'QYBSABKAVCS5JBSDJG0LvQuNC80LjRgiDQvtCx0YrQtdC60YLQvtCyINC90LAg0YHQu9C+0Lkg'
     'KNC/0L4g0YPQvNC+0LvRh9Cw0L3QuNGOIDgwKVIMbGltaXRQZXJLaW5kEigKEGluZG9vcl9wZW'
     'VyX3R5cGUYBiABKAVSDmluZG9vclBlZXJUeXBlEiQKDmluZG9vcl9wZWVyX2lkGAcgASgDUgxp'
-    'bmRvb3JQZWVySWQSJwoPaW5jbHVkZV9jb3ZlcmVkGAkgASgIUg5pbmNsdWRlQ292ZXJlZEoECA'
-    'gQCVIMZmxvb3JfZmlsdGVy');
+    'bmRvb3JQZWVySWQSJwoPaW5jbHVkZV9jb3ZlcmVkGAggASgIUg5pbmNsdWRlQ292ZXJlZA==');
 
 @$core.Deprecated('Use arObjectItemDescriptor instead')
 const ArObjectItem$json = {
@@ -819,21 +877,16 @@ const ArObjectItem$json = {
     {'1': 'is_plan', '3': 7, '4': 1, '5': 8, '10': 'isPlan'},
     {'1': 'point', '3': 8, '4': 1, '5': 11, '6': '.katan.Point', '10': 'point'},
     {'1': 'line', '3': 9, '4': 3, '5': 11, '6': '.katan.Point', '10': 'line'},
-    {'1': 'heading_deg', '3': 11, '4': 1, '5': 1, '10': 'headingDeg'},
-    {'1': 'covered_inside', '3': 12, '4': 1, '5': 8, '10': 'coveredInside'},
-    {'1': 'peer_type', '3': 13, '4': 1, '5': 5, '10': 'peerType'},
-    {'1': 'peer_id', '3': 14, '4': 1, '5': 3, '10': 'peerId'},
-    {'1': 'peer_name', '3': 15, '4': 1, '5': 9, '10': 'peerName'},
-    {'1': 'covered_count', '3': 17, '4': 1, '5': 5, '10': 'coveredCount'},
-    {'1': 'local_x', '3': 18, '4': 1, '5': 1, '10': 'localX'},
-    {'1': 'local_y', '3': 19, '4': 1, '5': 1, '10': 'localY'},
-    {'1': 'local_z', '3': 20, '4': 1, '5': 1, '10': 'localZ'},
+    {'1': 'heading_deg', '3': 10, '4': 1, '5': 1, '10': 'headingDeg'},
+    {'1': 'covered_inside', '3': 11, '4': 1, '5': 8, '10': 'coveredInside'},
+    {'1': 'peer_type', '3': 12, '4': 1, '5': 5, '10': 'peerType'},
+    {'1': 'peer_id', '3': 13, '4': 1, '5': 3, '10': 'peerId'},
+    {'1': 'peer_name', '3': 14, '4': 1, '5': 9, '10': 'peerName'},
+    {'1': 'covered_count', '3': 15, '4': 1, '5': 5, '10': 'coveredCount'},
+    {'1': 'local_x', '3': 16, '4': 1, '5': 1, '10': 'localX'},
+    {'1': 'local_y', '3': 17, '4': 1, '5': 1, '10': 'localY'},
+    {'1': 'local_z', '3': 18, '4': 1, '5': 1, '10': 'localZ'},
   ],
-  '9': [
-    {'1': 10, '2': 11},
-    {'1': 16, '2': 17},
-  ],
-  '10': ['floor', 'floor_count'],
 };
 
 /// Descriptor for `ArObjectItem`. Decode as a `google.protobuf.DescriptorProto`.
@@ -843,12 +896,11 @@ final $typed_data.Uint8List arObjectItemDescriptor = $convert.base64Decode(
     'YnRpdGxlGAQgASgJUghzdWJ0aXRsZRIUCgVjb2xvchgFIAEoCVIFY29sb3ISEgoEaWNvbhgGIA'
     'EoCVIEaWNvbhIXCgdpc19wbGFuGAcgASgIUgZpc1BsYW4SIgoFcG9pbnQYCCABKAsyDC5rYXRh'
     'bi5Qb2ludFIFcG9pbnQSIAoEbGluZRgJIAMoCzIMLmthdGFuLlBvaW50UgRsaW5lEh8KC2hlYW'
-    'RpbmdfZGVnGAsgASgBUgpoZWFkaW5nRGVnEiUKDmNvdmVyZWRfaW5zaWRlGAwgASgIUg1jb3Zl'
-    'cmVkSW5zaWRlEhsKCXBlZXJfdHlwZRgNIAEoBVIIcGVlclR5cGUSFwoHcGVlcl9pZBgOIAEoA1'
-    'IGcGVlcklkEhsKCXBlZXJfbmFtZRgPIAEoCVIIcGVlck5hbWUSIwoNY292ZXJlZF9jb3VudBgR'
-    'IAEoBVIMY292ZXJlZENvdW50EhcKB2xvY2FsX3gYEiABKAFSBmxvY2FsWBIXCgdsb2NhbF95GB'
-    'MgASgBUgZsb2NhbFkSFwoHbG9jYWxfehgUIAEoAVIGbG9jYWxaSgQIChALSgQIEBARUgVmbG9v'
-    'clILZmxvb3JfY291bnQ=');
+    'RpbmdfZGVnGAogASgBUgpoZWFkaW5nRGVnEiUKDmNvdmVyZWRfaW5zaWRlGAsgASgIUg1jb3Zl'
+    'cmVkSW5zaWRlEhsKCXBlZXJfdHlwZRgMIAEoBVIIcGVlclR5cGUSFwoHcGVlcl9pZBgNIAEoA1'
+    'IGcGVlcklkEhsKCXBlZXJfbmFtZRgOIAEoCVIIcGVlck5hbWUSIwoNY292ZXJlZF9jb3VudBgP'
+    'IAEoBVIMY292ZXJlZENvdW50EhcKB2xvY2FsX3gYECABKAFSBmxvY2FsWBIXCgdsb2NhbF95GB'
+    'EgASgBUgZsb2NhbFkSFwoHbG9jYWxfehgSIAEoAVIGbG9jYWxa');
 
 @$core.Deprecated('Use getArObjectsResponseDescriptor instead')
 const GetArObjectsResponse$json = {
@@ -912,28 +964,24 @@ const SetArDeviceCoverRequest$json = {
     {'1': 'lat', '3': 2, '4': 1, '5': 1, '10': 'lat'},
     {'1': 'lng', '3': 3, '4': 1, '5': 1, '10': 'lng'},
     {'1': 'heading_deg', '3': 4, '4': 1, '5': 1, '10': 'headingDeg'},
-    {'1': 'peer_type', '3': 6, '4': 1, '5': 5, '10': 'peerType'},
-    {'1': 'peer_id', '3': 7, '4': 1, '5': 3, '10': 'peerId'},
-    {'1': 'has_local', '3': 8, '4': 1, '5': 8, '10': 'hasLocal'},
-    {'1': 'local_x', '3': 9, '4': 1, '5': 1, '10': 'localX'},
-    {'1': 'local_y', '3': 10, '4': 1, '5': 1, '10': 'localY'},
-    {'1': 'local_z', '3': 11, '4': 1, '5': 1, '10': 'localZ'},
-    {'1': 'altitude_m', '3': 12, '4': 1, '5': 1, '10': 'altitudeM'},
+    {'1': 'peer_type', '3': 5, '4': 1, '5': 5, '10': 'peerType'},
+    {'1': 'peer_id', '3': 6, '4': 1, '5': 3, '10': 'peerId'},
+    {'1': 'has_local', '3': 7, '4': 1, '5': 8, '10': 'hasLocal'},
+    {'1': 'local_x', '3': 8, '4': 1, '5': 1, '10': 'localX'},
+    {'1': 'local_y', '3': 9, '4': 1, '5': 1, '10': 'localY'},
+    {'1': 'local_z', '3': 10, '4': 1, '5': 1, '10': 'localZ'},
+    {'1': 'altitude_m', '3': 11, '4': 1, '5': 1, '10': 'altitudeM'},
   ],
-  '9': [
-    {'1': 5, '2': 6},
-  ],
-  '10': ['floor'],
 };
 
 /// Descriptor for `SetArDeviceCoverRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List setArDeviceCoverRequestDescriptor = $convert.base64Decode(
     'ChdTZXRBckRldmljZUNvdmVyUmVxdWVzdBIbCglkZXZpY2VfaWQYASABKANSCGRldmljZUlkEh'
     'AKA2xhdBgCIAEoAVIDbGF0EhAKA2xuZxgDIAEoAVIDbG5nEh8KC2hlYWRpbmdfZGVnGAQgASgB'
-    'UgpoZWFkaW5nRGVnEhsKCXBlZXJfdHlwZRgGIAEoBVIIcGVlclR5cGUSFwoHcGVlcl9pZBgHIA'
-    'EoA1IGcGVlcklkEhsKCWhhc19sb2NhbBgIIAEoCFIIaGFzTG9jYWwSFwoHbG9jYWxfeBgJIAEo'
-    'AVIGbG9jYWxYEhcKB2xvY2FsX3kYCiABKAFSBmxvY2FsWRIXCgdsb2NhbF96GAsgASgBUgZsb2'
-    'NhbFoSHQoKYWx0aXR1ZGVfbRgMIAEoAVIJYWx0aXR1ZGVNSgQIBRAGUgVmbG9vcg==');
+    'UgpoZWFkaW5nRGVnEhsKCXBlZXJfdHlwZRgFIAEoBVIIcGVlclR5cGUSFwoHcGVlcl9pZBgGIA'
+    'EoA1IGcGVlcklkEhsKCWhhc19sb2NhbBgHIAEoCFIIaGFzTG9jYWwSFwoHbG9jYWxfeBgIIAEo'
+    'AVIGbG9jYWxYEhcKB2xvY2FsX3kYCSABKAFSBmxvY2FsWRIXCgdsb2NhbF96GAogASgBUgZsb2'
+    'NhbFoSHQoKYWx0aXR1ZGVfbRgLIAEoAVIJYWx0aXR1ZGVN');
 
 @$core.Deprecated('Use setArDeviceCoverResponseDescriptor instead')
 const SetArDeviceCoverResponse$json = {
@@ -990,3 +1038,107 @@ final $typed_data.Uint8List clearArDeviceCoverResponseDescriptor =
     $convert.base64Decode(
         'ChpDbGVhckFyRGV2aWNlQ292ZXJSZXNwb25zZRInCgRpdGVtGAEgASgLMhMua2F0YW4uQXJPYm'
         'plY3RJdGVtUgRpdGVt');
+
+@$core.Deprecated('Use setArNodeHereRequestDescriptor instead')
+const SetArNodeHereRequest$json = {
+  '1': 'SetArNodeHereRequest',
+  '2': [
+    {'1': 'node_id', '3': 1, '4': 1, '5': 3, '10': 'nodeId'},
+    {'1': 'lat', '3': 2, '4': 1, '5': 1, '10': 'lat'},
+    {'1': 'lng', '3': 3, '4': 1, '5': 1, '10': 'lng'},
+  ],
+};
+
+/// Descriptor for `SetArNodeHereRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setArNodeHereRequestDescriptor = $convert.base64Decode(
+    'ChRTZXRBck5vZGVIZXJlUmVxdWVzdBIXCgdub2RlX2lkGAEgASgDUgZub2RlSWQSEAoDbGF0GA'
+    'IgASgBUgNsYXQSEAoDbG5nGAMgASgBUgNsbmc=');
+
+@$core.Deprecated('Use setArNodeHereResponseDescriptor instead')
+const SetArNodeHereResponse$json = {
+  '1': 'SetArNodeHereResponse',
+  '2': [
+    {
+      '1': 'item',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.ArObjectItem',
+      '10': 'item'
+    },
+  ],
+};
+
+/// Descriptor for `SetArNodeHereResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List setArNodeHereResponseDescriptor = $convert.base64Decode(
+    'ChVTZXRBck5vZGVIZXJlUmVzcG9uc2USJwoEaXRlbRgBIAEoCzITLmthdGFuLkFyT2JqZWN0SX'
+    'RlbVIEaXRlbQ==');
+
+@$core.Deprecated('Use addArCableReserveRequestDescriptor instead')
+const AddArCableReserveRequest$json = {
+  '1': 'AddArCableReserveRequest',
+  '2': [
+    {'1': 'cable_id', '3': 1, '4': 1, '5': 3, '10': 'cableId'},
+    {'1': 'lat', '3': 2, '4': 1, '5': 1, '10': 'lat'},
+    {'1': 'lng', '3': 3, '4': 1, '5': 1, '10': 'lng'},
+    {'1': 'meter', '3': 4, '4': 1, '5': 3, '10': 'meter'},
+    {'1': 'note', '3': 5, '4': 1, '5': 9, '10': 'note'},
+  ],
+};
+
+/// Descriptor for `AddArCableReserveRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List addArCableReserveRequestDescriptor = $convert.base64Decode(
+    'ChhBZGRBckNhYmxlUmVzZXJ2ZVJlcXVlc3QSGQoIY2FibGVfaWQYASABKANSB2NhYmxlSWQSEA'
+    'oDbGF0GAIgASgBUgNsYXQSEAoDbG5nGAMgASgBUgNsbmcSFAoFbWV0ZXIYBCABKANSBW1ldGVy'
+    'EhIKBG5vdGUYBSABKAlSBG5vdGU=');
+
+@$core.Deprecated('Use addArCableReserveResponseDescriptor instead')
+const AddArCableReserveResponse$json = {
+  '1': 'AddArCableReserveResponse',
+  '2': [
+    {
+      '1': 'item',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.katan.ArObjectItem',
+      '10': 'item'
+    },
+  ],
+};
+
+/// Descriptor for `AddArCableReserveResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List addArCableReserveResponseDescriptor =
+    $convert.base64Decode(
+        'ChlBZGRBckNhYmxlUmVzZXJ2ZVJlc3BvbnNlEicKBGl0ZW0YASABKAsyEy5rYXRhbi5Bck9iam'
+        'VjdEl0ZW1SBGl0ZW0=');
+
+@$core.Deprecated('Use getArSchemeHintRequestDescriptor instead')
+const GetArSchemeHintRequest$json = {
+  '1': 'GetArSchemeHintRequest',
+  '2': [
+    {'1': 'kind', '3': 1, '4': 1, '5': 9, '10': 'kind'},
+    {'1': 'id', '3': 2, '4': 1, '5': 3, '10': 'id'},
+  ],
+};
+
+/// Descriptor for `GetArSchemeHintRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getArSchemeHintRequestDescriptor =
+    $convert.base64Decode(
+        'ChZHZXRBclNjaGVtZUhpbnRSZXF1ZXN0EhIKBGtpbmQYASABKAlSBGtpbmQSDgoCaWQYAiABKA'
+        'NSAmlk');
+
+@$core.Deprecated('Use getArSchemeHintResponseDescriptor instead')
+const GetArSchemeHintResponse$json = {
+  '1': 'GetArSchemeHintResponse',
+  '2': [
+    {'1': 'text', '3': 1, '4': 1, '5': 9, '10': 'text'},
+    {'1': 'impact', '3': 2, '4': 1, '5': 9, '10': 'impact'},
+  ],
+};
+
+/// Descriptor for `GetArSchemeHintResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List getArSchemeHintResponseDescriptor =
+    $convert.base64Decode(
+        'ChdHZXRBclNjaGVtZUhpbnRSZXNwb25zZRISCgR0ZXh0GAEgASgJUgR0ZXh0EhYKBmltcGFjdB'
+        'gCIAEoCVIGaW1wYWN0');

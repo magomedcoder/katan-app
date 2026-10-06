@@ -836,6 +836,181 @@ class GetMapNodesResponse extends $pb.GeneratedMessage {
   void clearCount() => $_clearField(3);
 }
 
+class GetMapCustomersRequest extends $pb.GeneratedMessage {
+  factory GetMapCustomersRequest({
+    $1.PointBounds? bounds,
+    $core.Iterable<$fixnum.Int64>? customerTypeIds,
+    $core.int? zoom,
+    $core.int? limit,
+    $core.int? offset,
+  }) {
+    final result = create();
+    if (bounds != null) result.bounds = bounds;
+    if (customerTypeIds != null) result.customerTypeIds.addAll(customerTypeIds);
+    if (zoom != null) result.zoom = zoom;
+    if (limit != null) result.limit = limit;
+    if (offset != null) result.offset = offset;
+    return result;
+  }
+
+  GetMapCustomersRequest._();
+
+  factory GetMapCustomersRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GetMapCustomersRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetMapCustomersRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOM<$1.PointBounds>(1, _omitFieldNames ? '' : 'bounds',
+        subBuilder: $1.PointBounds.create)
+    ..p<$fixnum.Int64>(
+        2, _omitFieldNames ? '' : 'customerTypeIds', $pb.PbFieldType.K6)
+    ..aI(3, _omitFieldNames ? '' : 'zoom')
+    ..aI(4, _omitFieldNames ? '' : 'limit')
+    ..aI(5, _omitFieldNames ? '' : 'offset')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetMapCustomersRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetMapCustomersRequest copyWith(
+          void Function(GetMapCustomersRequest) updates) =>
+      super.copyWith((message) => updates(message as GetMapCustomersRequest))
+          as GetMapCustomersRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetMapCustomersRequest create() => GetMapCustomersRequest._();
+  @$core.override
+  GetMapCustomersRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GetMapCustomersRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetMapCustomersRequest>(create);
+  static GetMapCustomersRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.PointBounds get bounds => $_getN(0);
+  @$pb.TagNumber(1)
+  set bounds($1.PointBounds value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasBounds() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearBounds() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $1.PointBounds ensureBounds() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get customerTypeIds => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.int get zoom => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set zoom($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasZoom() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearZoom() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get limit => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set limit($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasLimit() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLimit() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get offset => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set offset($core.int value) => $_setSignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasOffset() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearOffset() => $_clearField(5);
+}
+
+class GetMapCustomersResponse extends $pb.GeneratedMessage {
+  factory GetMapCustomersResponse({
+    $core.Iterable<$1.Feature>? features,
+    $core.String? data,
+    $fixnum.Int64? count,
+  }) {
+    final result = create();
+    if (features != null) result.features.addAll(features);
+    if (data != null) result.data = data;
+    if (count != null) result.count = count;
+    return result;
+  }
+
+  GetMapCustomersResponse._();
+
+  factory GetMapCustomersResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GetMapCustomersResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetMapCustomersResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..pPM<$1.Feature>(1, _omitFieldNames ? '' : 'features',
+        subBuilder: $1.Feature.create)
+    ..aOS(2, _omitFieldNames ? '' : 'data')
+    ..aInt64(3, _omitFieldNames ? '' : 'count')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetMapCustomersResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetMapCustomersResponse copyWith(
+          void Function(GetMapCustomersResponse) updates) =>
+      super.copyWith((message) => updates(message as GetMapCustomersResponse))
+          as GetMapCustomersResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetMapCustomersResponse create() => GetMapCustomersResponse._();
+  @$core.override
+  GetMapCustomersResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GetMapCustomersResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetMapCustomersResponse>(create);
+  static GetMapCustomersResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$1.Feature> get features => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $core.String get data => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set data($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasData() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearData() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get count => $_getI64(2);
+  @$pb.TagNumber(3)
+  set count($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasCount() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCount() => $_clearField(3);
+}
+
 class GetMapCablesRequest extends $pb.GeneratedMessage {
   factory GetMapCablesRequest({
     $1.PointBounds? bounds,
@@ -2538,7 +2713,7 @@ class GetArObjectsRequest extends $pb.GeneratedMessage {
     ..aI(5, _omitFieldNames ? '' : 'limitPerKind')
     ..aI(6, _omitFieldNames ? '' : 'indoorPeerType')
     ..aInt64(7, _omitFieldNames ? '' : 'indoorPeerId')
-    ..aOB(9, _omitFieldNames ? '' : 'includeCovered')
+    ..aOB(8, _omitFieldNames ? '' : 'includeCovered')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2587,7 +2762,6 @@ class GetArObjectsRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearRadiusMeters() => $_clearField(3);
 
-  /// node | device | cable | customer; пусто = все доступные по правам
   @$pb.TagNumber(4)
   $pb.PbList<$core.String> get kinds => $_getList(3);
 
@@ -2600,7 +2774,6 @@ class GetArObjectsRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearLimitPerKind() => $_clearField(5);
 
-  /// Indoor: peer_type 1=node, 2=building; peer_id контейнера
   @$pb.TagNumber(6)
   $core.int get indoorPeerType => $_getIZ(5);
   @$pb.TagNumber(6)
@@ -2619,15 +2792,14 @@ class GetArObjectsRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   void clearIndoorPeerId() => $_clearField(7);
 
-  /// false (default) = outdoor: скрыть ar_covered_inside
-  @$pb.TagNumber(9)
+  @$pb.TagNumber(8)
   $core.bool get includeCovered => $_getBF(7);
-  @$pb.TagNumber(9)
+  @$pb.TagNumber(8)
   set includeCovered($core.bool value) => $_setBool(7, value);
-  @$pb.TagNumber(9)
+  @$pb.TagNumber(8)
   $core.bool hasIncludeCovered() => $_has(7);
-  @$pb.TagNumber(9)
-  void clearIncludeCovered() => $_clearField(9);
+  @$pb.TagNumber(8)
+  void clearIncludeCovered() => $_clearField(8);
 }
 
 class ArObjectItem extends $pb.GeneratedMessage {
@@ -2697,15 +2869,15 @@ class ArObjectItem extends $pb.GeneratedMessage {
         subBuilder: $1.Point.create)
     ..pPM<$1.Point>(9, _omitFieldNames ? '' : 'line',
         subBuilder: $1.Point.create)
-    ..aD(11, _omitFieldNames ? '' : 'headingDeg')
-    ..aOB(12, _omitFieldNames ? '' : 'coveredInside')
-    ..aI(13, _omitFieldNames ? '' : 'peerType')
-    ..aInt64(14, _omitFieldNames ? '' : 'peerId')
-    ..aOS(15, _omitFieldNames ? '' : 'peerName')
-    ..aI(17, _omitFieldNames ? '' : 'coveredCount')
-    ..aD(18, _omitFieldNames ? '' : 'localX')
-    ..aD(19, _omitFieldNames ? '' : 'localY')
-    ..aD(20, _omitFieldNames ? '' : 'localZ')
+    ..aD(10, _omitFieldNames ? '' : 'headingDeg')
+    ..aOB(11, _omitFieldNames ? '' : 'coveredInside')
+    ..aI(12, _omitFieldNames ? '' : 'peerType')
+    ..aInt64(13, _omitFieldNames ? '' : 'peerId')
+    ..aOS(14, _omitFieldNames ? '' : 'peerName')
+    ..aI(15, _omitFieldNames ? '' : 'coveredCount')
+    ..aD(16, _omitFieldNames ? '' : 'localX')
+    ..aD(17, _omitFieldNames ? '' : 'localY')
+    ..aD(18, _omitFieldNames ? '' : 'localZ')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2804,88 +2976,86 @@ class ArObjectItem extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   $pb.PbList<$1.Point> get line => $_getList(8);
 
-  /// AR-COVER
-  @$pb.TagNumber(11)
+  @$pb.TagNumber(10)
   $core.double get headingDeg => $_getN(9);
-  @$pb.TagNumber(11)
+  @$pb.TagNumber(10)
   set headingDeg($core.double value) => $_setDouble(9, value);
-  @$pb.TagNumber(11)
+  @$pb.TagNumber(10)
   $core.bool hasHeadingDeg() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearHeadingDeg() => $_clearField(10);
+
   @$pb.TagNumber(11)
-  void clearHeadingDeg() => $_clearField(11);
-
-  @$pb.TagNumber(12)
   $core.bool get coveredInside => $_getBF(10);
-  @$pb.TagNumber(12)
+  @$pb.TagNumber(11)
   set coveredInside($core.bool value) => $_setBool(10, value);
-  @$pb.TagNumber(12)
+  @$pb.TagNumber(11)
   $core.bool hasCoveredInside() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearCoveredInside() => $_clearField(11);
+
   @$pb.TagNumber(12)
-  void clearCoveredInside() => $_clearField(12);
-
-  @$pb.TagNumber(13)
   $core.int get peerType => $_getIZ(11);
-  @$pb.TagNumber(13)
+  @$pb.TagNumber(12)
   set peerType($core.int value) => $_setSignedInt32(11, value);
-  @$pb.TagNumber(13)
+  @$pb.TagNumber(12)
   $core.bool hasPeerType() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearPeerType() => $_clearField(12);
+
   @$pb.TagNumber(13)
-  void clearPeerType() => $_clearField(13);
-
-  @$pb.TagNumber(14)
   $fixnum.Int64 get peerId => $_getI64(12);
-  @$pb.TagNumber(14)
+  @$pb.TagNumber(13)
   set peerId($fixnum.Int64 value) => $_setInt64(12, value);
-  @$pb.TagNumber(14)
+  @$pb.TagNumber(13)
   $core.bool hasPeerId() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearPeerId() => $_clearField(13);
+
   @$pb.TagNumber(14)
-  void clearPeerId() => $_clearField(14);
-
-  @$pb.TagNumber(15)
   $core.String get peerName => $_getSZ(13);
-  @$pb.TagNumber(15)
+  @$pb.TagNumber(14)
   set peerName($core.String value) => $_setString(13, value);
-  @$pb.TagNumber(15)
+  @$pb.TagNumber(14)
   $core.bool hasPeerName() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearPeerName() => $_clearField(14);
+
   @$pb.TagNumber(15)
-  void clearPeerName() => $_clearField(15);
-
-  @$pb.TagNumber(17)
   $core.int get coveredCount => $_getIZ(14);
-  @$pb.TagNumber(17)
+  @$pb.TagNumber(15)
   set coveredCount($core.int value) => $_setSignedInt32(14, value);
-  @$pb.TagNumber(17)
+  @$pb.TagNumber(15)
   $core.bool hasCoveredCount() => $_has(14);
-  @$pb.TagNumber(17)
-  void clearCoveredCount() => $_clearField(17);
+  @$pb.TagNumber(15)
+  void clearCoveredCount() => $_clearField(15);
 
-  /// Локальные метры ENU от якоря peer: X=восток, Y=север, Z=вверх
-  @$pb.TagNumber(18)
+  @$pb.TagNumber(16)
   $core.double get localX => $_getN(15);
-  @$pb.TagNumber(18)
+  @$pb.TagNumber(16)
   set localX($core.double value) => $_setDouble(15, value);
-  @$pb.TagNumber(18)
+  @$pb.TagNumber(16)
   $core.bool hasLocalX() => $_has(15);
-  @$pb.TagNumber(18)
-  void clearLocalX() => $_clearField(18);
+  @$pb.TagNumber(16)
+  void clearLocalX() => $_clearField(16);
 
-  @$pb.TagNumber(19)
+  @$pb.TagNumber(17)
   $core.double get localY => $_getN(16);
-  @$pb.TagNumber(19)
+  @$pb.TagNumber(17)
   set localY($core.double value) => $_setDouble(16, value);
-  @$pb.TagNumber(19)
+  @$pb.TagNumber(17)
   $core.bool hasLocalY() => $_has(16);
-  @$pb.TagNumber(19)
-  void clearLocalY() => $_clearField(19);
+  @$pb.TagNumber(17)
+  void clearLocalY() => $_clearField(17);
 
-  @$pb.TagNumber(20)
+  @$pb.TagNumber(18)
   $core.double get localZ => $_getN(17);
-  @$pb.TagNumber(20)
+  @$pb.TagNumber(18)
   set localZ($core.double value) => $_setDouble(17, value);
-  @$pb.TagNumber(20)
+  @$pb.TagNumber(18)
   $core.bool hasLocalZ() => $_has(17);
-  @$pb.TagNumber(20)
-  void clearLocalZ() => $_clearField(20);
+  @$pb.TagNumber(18)
+  void clearLocalZ() => $_clearField(18);
 }
 
 class GetArObjectsResponse extends $pb.GeneratedMessage {
@@ -3106,13 +3276,13 @@ class SetArDeviceCoverRequest extends $pb.GeneratedMessage {
     ..aD(2, _omitFieldNames ? '' : 'lat')
     ..aD(3, _omitFieldNames ? '' : 'lng')
     ..aD(4, _omitFieldNames ? '' : 'headingDeg')
-    ..aI(6, _omitFieldNames ? '' : 'peerType')
-    ..aInt64(7, _omitFieldNames ? '' : 'peerId')
-    ..aOB(8, _omitFieldNames ? '' : 'hasLocal')
-    ..aD(9, _omitFieldNames ? '' : 'localX')
-    ..aD(10, _omitFieldNames ? '' : 'localY')
-    ..aD(11, _omitFieldNames ? '' : 'localZ')
-    ..aD(12, _omitFieldNames ? '' : 'altitudeM')
+    ..aI(5, _omitFieldNames ? '' : 'peerType')
+    ..aInt64(6, _omitFieldNames ? '' : 'peerId')
+    ..aOB(7, _omitFieldNames ? '' : 'hasLocal')
+    ..aD(8, _omitFieldNames ? '' : 'localX')
+    ..aD(9, _omitFieldNames ? '' : 'localY')
+    ..aD(10, _omitFieldNames ? '' : 'localZ')
+    ..aD(11, _omitFieldNames ? '' : 'altitudeM')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3171,71 +3341,68 @@ class SetArDeviceCoverRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearHeadingDeg() => $_clearField(4);
 
-  /// 0 = оставить текущий peer / найти ближайший node
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(5)
   $core.int get peerType => $_getIZ(4);
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(5)
   set peerType($core.int value) => $_setSignedInt32(4, value);
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(5)
   $core.bool hasPeerType() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearPeerType() => $_clearField(5);
+
   @$pb.TagNumber(6)
-  void clearPeerType() => $_clearField(6);
-
-  @$pb.TagNumber(7)
   $fixnum.Int64 get peerId => $_getI64(5);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(6)
   set peerId($fixnum.Int64 value) => $_setInt64(5, value);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(6)
   $core.bool hasPeerId() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearPeerId() => $_clearField(6);
+
   @$pb.TagNumber(7)
-  void clearPeerId() => $_clearField(7);
-
-  /// Если has_local=true - взять XYZ как есть; иначе сервер считает ENU от якоря по lat/lng
-  @$pb.TagNumber(8)
   $core.bool get hasLocal => $_getBF(6);
-  @$pb.TagNumber(8)
+  @$pb.TagNumber(7)
   set hasLocal($core.bool value) => $_setBool(6, value);
-  @$pb.TagNumber(8)
+  @$pb.TagNumber(7)
   $core.bool hasHasLocal() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearHasLocal() => $_clearField(7);
+
   @$pb.TagNumber(8)
-  void clearHasLocal() => $_clearField(8);
-
-  @$pb.TagNumber(9)
   $core.double get localX => $_getN(7);
-  @$pb.TagNumber(9)
+  @$pb.TagNumber(8)
   set localX($core.double value) => $_setDouble(7, value);
-  @$pb.TagNumber(9)
+  @$pb.TagNumber(8)
   $core.bool hasLocalX() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearLocalX() => $_clearField(8);
+
   @$pb.TagNumber(9)
-  void clearLocalX() => $_clearField(9);
-
-  @$pb.TagNumber(10)
   $core.double get localY => $_getN(8);
-  @$pb.TagNumber(10)
+  @$pb.TagNumber(9)
   set localY($core.double value) => $_setDouble(8, value);
-  @$pb.TagNumber(10)
+  @$pb.TagNumber(9)
   $core.bool hasLocalY() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearLocalY() => $_clearField(9);
+
   @$pb.TagNumber(10)
-  void clearLocalY() => $_clearField(10);
-
-  @$pb.TagNumber(11)
   $core.double get localZ => $_getN(9);
-  @$pb.TagNumber(11)
+  @$pb.TagNumber(10)
   set localZ($core.double value) => $_setDouble(9, value);
-  @$pb.TagNumber(11)
+  @$pb.TagNumber(10)
   $core.bool hasLocalZ() => $_has(9);
-  @$pb.TagNumber(11)
-  void clearLocalZ() => $_clearField(11);
+  @$pb.TagNumber(10)
+  void clearLocalZ() => $_clearField(10);
 
-  /// Опционально: высота GPS (м); для Z, если local_z не задан явно через has_local
-  @$pb.TagNumber(12)
+  @$pb.TagNumber(11)
   $core.double get altitudeM => $_getN(10);
-  @$pb.TagNumber(12)
+  @$pb.TagNumber(11)
   set altitudeM($core.double value) => $_setDouble(10, value);
-  @$pb.TagNumber(12)
+  @$pb.TagNumber(11)
   $core.bool hasAltitudeM() => $_has(10);
-  @$pb.TagNumber(12)
-  void clearAltitudeM() => $_clearField(12);
+  @$pb.TagNumber(11)
+  void clearAltitudeM() => $_clearField(11);
 }
 
 class SetArDeviceCoverResponse extends $pb.GeneratedMessage {
@@ -3408,6 +3575,437 @@ class ClearArDeviceCoverResponse extends $pb.GeneratedMessage {
   void clearItem() => $_clearField(1);
   @$pb.TagNumber(1)
   ArObjectItem ensureItem() => $_ensure(0);
+}
+
+class SetArNodeHereRequest extends $pb.GeneratedMessage {
+  factory SetArNodeHereRequest({
+    $fixnum.Int64? nodeId,
+    $core.double? lat,
+    $core.double? lng,
+  }) {
+    final result = create();
+    if (nodeId != null) result.nodeId = nodeId;
+    if (lat != null) result.lat = lat;
+    if (lng != null) result.lng = lng;
+    return result;
+  }
+
+  SetArNodeHereRequest._();
+
+  factory SetArNodeHereRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SetArNodeHereRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetArNodeHereRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'nodeId')
+    ..aD(2, _omitFieldNames ? '' : 'lat')
+    ..aD(3, _omitFieldNames ? '' : 'lng')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetArNodeHereRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetArNodeHereRequest copyWith(void Function(SetArNodeHereRequest) updates) =>
+      super.copyWith((message) => updates(message as SetArNodeHereRequest))
+          as SetArNodeHereRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SetArNodeHereRequest create() => SetArNodeHereRequest._();
+  @$core.override
+  SetArNodeHereRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SetArNodeHereRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SetArNodeHereRequest>(create);
+  static SetArNodeHereRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get nodeId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set nodeId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasNodeId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearNodeId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get lat => $_getN(1);
+  @$pb.TagNumber(2)
+  set lat($core.double value) => $_setDouble(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLat() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLat() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get lng => $_getN(2);
+  @$pb.TagNumber(3)
+  set lng($core.double value) => $_setDouble(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLng() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLng() => $_clearField(3);
+}
+
+class SetArNodeHereResponse extends $pb.GeneratedMessage {
+  factory SetArNodeHereResponse({
+    ArObjectItem? item,
+  }) {
+    final result = create();
+    if (item != null) result.item = item;
+    return result;
+  }
+
+  SetArNodeHereResponse._();
+
+  factory SetArNodeHereResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SetArNodeHereResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'SetArNodeHereResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOM<ArObjectItem>(1, _omitFieldNames ? '' : 'item',
+        subBuilder: ArObjectItem.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetArNodeHereResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SetArNodeHereResponse copyWith(
+          void Function(SetArNodeHereResponse) updates) =>
+      super.copyWith((message) => updates(message as SetArNodeHereResponse))
+          as SetArNodeHereResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SetArNodeHereResponse create() => SetArNodeHereResponse._();
+  @$core.override
+  SetArNodeHereResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SetArNodeHereResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SetArNodeHereResponse>(create);
+  static SetArNodeHereResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ArObjectItem get item => $_getN(0);
+  @$pb.TagNumber(1)
+  set item(ArObjectItem value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasItem() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearItem() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ArObjectItem ensureItem() => $_ensure(0);
+}
+
+class AddArCableReserveRequest extends $pb.GeneratedMessage {
+  factory AddArCableReserveRequest({
+    $fixnum.Int64? cableId,
+    $core.double? lat,
+    $core.double? lng,
+    $fixnum.Int64? meter,
+    $core.String? note,
+  }) {
+    final result = create();
+    if (cableId != null) result.cableId = cableId;
+    if (lat != null) result.lat = lat;
+    if (lng != null) result.lng = lng;
+    if (meter != null) result.meter = meter;
+    if (note != null) result.note = note;
+    return result;
+  }
+
+  AddArCableReserveRequest._();
+
+  factory AddArCableReserveRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AddArCableReserveRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AddArCableReserveRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'cableId')
+    ..aD(2, _omitFieldNames ? '' : 'lat')
+    ..aD(3, _omitFieldNames ? '' : 'lng')
+    ..aInt64(4, _omitFieldNames ? '' : 'meter')
+    ..aOS(5, _omitFieldNames ? '' : 'note')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AddArCableReserveRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AddArCableReserveRequest copyWith(
+          void Function(AddArCableReserveRequest) updates) =>
+      super.copyWith((message) => updates(message as AddArCableReserveRequest))
+          as AddArCableReserveRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AddArCableReserveRequest create() => AddArCableReserveRequest._();
+  @$core.override
+  AddArCableReserveRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AddArCableReserveRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AddArCableReserveRequest>(create);
+  static AddArCableReserveRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get cableId => $_getI64(0);
+  @$pb.TagNumber(1)
+  set cableId($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCableId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCableId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.double get lat => $_getN(1);
+  @$pb.TagNumber(2)
+  set lat($core.double value) => $_setDouble(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLat() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLat() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get lng => $_getN(2);
+  @$pb.TagNumber(3)
+  set lng($core.double value) => $_setDouble(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLng() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLng() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get meter => $_getI64(3);
+  @$pb.TagNumber(4)
+  set meter($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasMeter() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearMeter() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get note => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set note($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasNote() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearNote() => $_clearField(5);
+}
+
+class AddArCableReserveResponse extends $pb.GeneratedMessage {
+  factory AddArCableReserveResponse({
+    ArObjectItem? item,
+  }) {
+    final result = create();
+    if (item != null) result.item = item;
+    return result;
+  }
+
+  AddArCableReserveResponse._();
+
+  factory AddArCableReserveResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AddArCableReserveResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'AddArCableReserveResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOM<ArObjectItem>(1, _omitFieldNames ? '' : 'item',
+        subBuilder: ArObjectItem.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AddArCableReserveResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AddArCableReserveResponse copyWith(
+          void Function(AddArCableReserveResponse) updates) =>
+      super.copyWith((message) => updates(message as AddArCableReserveResponse))
+          as AddArCableReserveResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AddArCableReserveResponse create() => AddArCableReserveResponse._();
+  @$core.override
+  AddArCableReserveResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AddArCableReserveResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<AddArCableReserveResponse>(create);
+  static AddArCableReserveResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ArObjectItem get item => $_getN(0);
+  @$pb.TagNumber(1)
+  set item(ArObjectItem value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasItem() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearItem() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ArObjectItem ensureItem() => $_ensure(0);
+}
+
+class GetArSchemeHintRequest extends $pb.GeneratedMessage {
+  factory GetArSchemeHintRequest({
+    $core.String? kind,
+    $fixnum.Int64? id,
+  }) {
+    final result = create();
+    if (kind != null) result.kind = kind;
+    if (id != null) result.id = id;
+    return result;
+  }
+
+  GetArSchemeHintRequest._();
+
+  factory GetArSchemeHintRequest.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GetArSchemeHintRequest.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetArSchemeHintRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'kind')
+    ..aInt64(2, _omitFieldNames ? '' : 'id')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetArSchemeHintRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetArSchemeHintRequest copyWith(
+          void Function(GetArSchemeHintRequest) updates) =>
+      super.copyWith((message) => updates(message as GetArSchemeHintRequest))
+          as GetArSchemeHintRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetArSchemeHintRequest create() => GetArSchemeHintRequest._();
+  @$core.override
+  GetArSchemeHintRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GetArSchemeHintRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetArSchemeHintRequest>(create);
+  static GetArSchemeHintRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get kind => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set kind($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKind() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKind() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get id => $_getI64(1);
+  @$pb.TagNumber(2)
+  set id($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasId() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearId() => $_clearField(2);
+}
+
+class GetArSchemeHintResponse extends $pb.GeneratedMessage {
+  factory GetArSchemeHintResponse({
+    $core.String? text,
+    $core.String? impact,
+  }) {
+    final result = create();
+    if (text != null) result.text = text;
+    if (impact != null) result.impact = impact;
+    return result;
+  }
+
+  GetArSchemeHintResponse._();
+
+  factory GetArSchemeHintResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GetArSchemeHintResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GetArSchemeHintResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'katan'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'text')
+    ..aOS(2, _omitFieldNames ? '' : 'impact')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetArSchemeHintResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GetArSchemeHintResponse copyWith(
+          void Function(GetArSchemeHintResponse) updates) =>
+      super.copyWith((message) => updates(message as GetArSchemeHintResponse))
+          as GetArSchemeHintResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GetArSchemeHintResponse create() => GetArSchemeHintResponse._();
+  @$core.override
+  GetArSchemeHintResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GetArSchemeHintResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GetArSchemeHintResponse>(create);
+  static GetArSchemeHintResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get text => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set text($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasText() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearText() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get impact => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set impact($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasImpact() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearImpact() => $_clearField(2);
 }
 
 const $core.bool _omitFieldNames =

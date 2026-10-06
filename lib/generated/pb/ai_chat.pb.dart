@@ -1856,6 +1856,7 @@ class AiChatStatusResponse extends $pb.GeneratedMessage {
     $core.Iterable<AiChatQuickPrompt>? customQuickPrompts,
     $core.Iterable<AiChatProactiveChip>? proactiveChips,
     $core.bool? imageUploadAvailable,
+    $core.bool? nodeEditIntegrityPromptEnabled,
   }) {
     final result = create();
     if (enabled != null) result.enabled = enabled;
@@ -1880,6 +1881,8 @@ class AiChatStatusResponse extends $pb.GeneratedMessage {
     if (proactiveChips != null) result.proactiveChips.addAll(proactiveChips);
     if (imageUploadAvailable != null)
       result.imageUploadAvailable = imageUploadAvailable;
+    if (nodeEditIntegrityPromptEnabled != null)
+      result.nodeEditIntegrityPromptEnabled = nodeEditIntegrityPromptEnabled;
     return result;
   }
 
@@ -1914,6 +1917,7 @@ class AiChatStatusResponse extends $pb.GeneratedMessage {
     ..pPM<AiChatProactiveChip>(13, _omitFieldNames ? '' : 'proactiveChips',
         subBuilder: AiChatProactiveChip.create)
     ..aOB(14, _omitFieldNames ? '' : 'imageUploadAvailable')
+    ..aOB(15, _omitFieldNames ? '' : 'nodeEditIntegrityPromptEnabled')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2038,6 +2042,15 @@ class AiChatStatusResponse extends $pb.GeneratedMessage {
   $core.bool hasImageUploadAvailable() => $_has(13);
   @$pb.TagNumber(14)
   void clearImageUploadAvailable() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.bool get nodeEditIntegrityPromptEnabled => $_getBF(14);
+  @$pb.TagNumber(15)
+  set nodeEditIntegrityPromptEnabled($core.bool value) => $_setBool(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasNodeEditIntegrityPromptEnabled() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearNodeEditIntegrityPromptEnabled() => $_clearField(15);
 }
 
 class AiChatGetSessionsRequest extends $pb.GeneratedMessage {

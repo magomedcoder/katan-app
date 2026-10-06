@@ -4,7 +4,10 @@ enum ArObjectKind {
   node,
   device,
   cable,
-  customer;
+  customer,
+  reserve,
+  task,
+  coverage;
 
   String get wire {
     return switch (this) {
@@ -12,6 +15,9 @@ enum ArObjectKind {
       ArObjectKind.device => 'device',
       ArObjectKind.cable => 'cable',
       ArObjectKind.customer => 'customer',
+      ArObjectKind.reserve => 'reserve',
+      ArObjectKind.task => 'task',
+      ArObjectKind.coverage => 'coverage',
     };
   }
 
@@ -21,6 +27,28 @@ enum ArObjectKind {
       ArObjectKind.device => 'Устройство',
       ArObjectKind.cable => 'Кабель',
       ArObjectKind.customer => 'Абонент',
+      ArObjectKind.reserve => 'Запас',
+      ArObjectKind.task => 'Задача',
+      ArObjectKind.coverage => 'Покрытие',
+    };
+  }
+
+  bool get isHudLayer {
+    return switch (this) {
+      ArObjectKind.node ||
+      ArObjectKind.device ||
+      ArObjectKind.cable ||
+      ArObjectKind.customer ||
+      ArObjectKind.task => true,
+      _ => false,
+    };
+  }
+
+  ArObjectKind get filterKind {
+    return switch (this) {
+      ArObjectKind.reserve => ArObjectKind.cable,
+      ArObjectKind.coverage => ArObjectKind.node,
+      _ => this,
     };
   }
 
@@ -30,6 +58,9 @@ enum ArObjectKind {
       'device' => ArObjectKind.device,
       'cable' => ArObjectKind.cable,
       'customer' => ArObjectKind.customer,
+      'reserve' => ArObjectKind.reserve,
+      'task' => ArObjectKind.task,
+      'coverage' => ArObjectKind.coverage,
       _ => null,
     };
   }
@@ -105,7 +136,6 @@ class ArObjectRef extends Equatable {
     }
     return switch (kindRaw.toLowerCase()) {
       'building' => 'QR здания пока не открывается в AR',
-      'task' => 'QR задачи пока не открывается в AR',
       _ => null,
     };
   }
@@ -155,6 +185,8 @@ class ArMapObject extends Equatable {
 
   bool get canEnterInside => kind == ArObjectKind.node;
 
+  bool get isOutage => (colorHex ?? '').toLowerCase().contains('ff0000') || subtitle.toLowerCase().contains('авария');
+
   String get localXyzLabel => '(${localX.toStringAsFixed(1)}, ${localY.toStringAsFixed(1)}, ${localZ.toStringAsFixed(1)})';
 
   @override
@@ -186,6 +218,11 @@ class ArNearbyItem extends Equatable {
     required this.relativeDegrees,
     this.clusterSize = 1,
     this.clusterItems = const [],
+    this.screenX = 0,
+    this.screenY = 0,
+    this.inView = true,
+    this.behind = false,
+    this.worldLocked = false,
   });
 
   final ArMapObject object;
@@ -194,6 +231,11 @@ class ArNearbyItem extends Equatable {
   final double relativeDegrees;
   final int clusterSize;
   final List<ArNearbyItem> clusterItems;
+  final double screenX;
+  final double screenY;
+  final bool inView;
+  final bool behind;
+  final bool worldLocked;
 
   bool get isCluster => clusterSize > 1;
 
@@ -218,5 +260,10 @@ class ArNearbyItem extends Equatable {
     relativeDegrees,
     clusterSize,
     clusterItems,
+    screenX,
+    screenY,
+    inView,
+    behind,
+    worldLocked,
   ];
 }
